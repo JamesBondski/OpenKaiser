@@ -24,6 +24,7 @@ export namespace sdl {
 
     export using WindowFlags = SDL_WindowFlags;
     export using Event = SDL_Event;
+    export using FRect = SDL_FRect;
     
     export namespace EventType {
         export constexpr Uint32 Quit = SDL_EVENT_QUIT;
@@ -82,6 +83,12 @@ export namespace sdl {
     export void set_render_draw_color(RendererPtr& renderer, Uint8 r, Uint8 g, Uint8 b, Uint8 alpha) {
         if(!SDL_SetRenderDrawColor(renderer.get(), r, g, b, alpha)) {
             throw sdl_error("Failed to set render draw color");
+        }
+	}
+
+    export void render_fill_rect(RendererPtr& renderer, const FRect& rect) {
+        if(!SDL_RenderFillRect(renderer.get(), &rect)) {
+            throw sdl_error("Failed to fill rectangle");
         }
 	}
 }
