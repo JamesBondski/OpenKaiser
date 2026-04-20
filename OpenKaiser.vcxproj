@@ -131,12 +131,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Game.ixx" />
-    <ClCompile Include="OpenKaiser.cpp" />
-    <ClCompile Include="SDL3.ixx" />
+    <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="vcpkg.json" />
+    <ClCompile Include="src\Game.ixx" />
+    <ClCompile Include="src\OpenKaiser.cpp" />
+    <ClCompile Include="src\SDL3.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

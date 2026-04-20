@@ -1,5 +1,5 @@
 export module Game;
-import <iostream>;
+import std;
 import SDL3;
 
 namespace OpenKaiser {
@@ -20,7 +20,13 @@ namespace OpenKaiser {
 		}
 
 		void Draw() {
-			
+			sdl::set_render_draw_color(this->renderer, 11, 11, 11, 255);
+			sdl::render_clear(this->renderer);
+
+			sdl::set_render_draw_color(this->renderer, 255, 0, 0, 255);
+			sdl::render_debug_text(this->renderer, 10, 10, "Hello World!");
+
+			sdl::render_present(this->renderer);
 		}
 
 	public:
@@ -28,13 +34,18 @@ namespace OpenKaiser {
 			std::cout << "Initializing...\n";
 			sdl::init();
 			this->window = sdl::create_window("OpenKaiser", 800, 600, 0);
-			this->renderer = sdl::create_renderer(this->window.get(), "OpenKaiser");
+			this->renderer = sdl::create_renderer(this->window.get());
 		}
 
 		void Run() {
 			std::cout << "Running...\n";
-			while (this->Update()) {
-				this->Draw();
+			try {
+				while (this->Update()) {
+					this->Draw();
+				}
+			}
+			catch (const sdl::sdl_error& e) {
+				throw;
 			}
 		}
 	};
