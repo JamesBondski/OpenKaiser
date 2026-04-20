@@ -107,7 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Game.ixx" />
+    <ClCompile Include="src\MapGenerator.ixx" />
     <ClCompile Include="src\OpenKaiser.cpp" />
     <ClCompile Include="src\SDL3.ixx" />
     <ClCompile Include="src\WorldState.ixx" />

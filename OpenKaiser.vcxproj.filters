@@ -21,5 +21,8 @@
     <ClCompile Include="src\WorldState.ixx">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\MapGenerator.ixx">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

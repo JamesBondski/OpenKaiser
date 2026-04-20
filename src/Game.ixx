@@ -2,6 +2,7 @@ export module Game;
 import std;
 import SDL3;
 import WorldState;
+import MapGenerator;
 
 namespace OpenKaiser {
 	export class Game {
@@ -60,6 +61,7 @@ namespace OpenKaiser {
 		void Init() {
 			std::cout << "Initializing World...\n";
 			this->world = WorldState(100, 100);
+			RandomMapGenerator().generate(this->world);
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();

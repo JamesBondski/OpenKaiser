@@ -18,6 +18,7 @@ export namespace OpenKaiser {
 		std::vector<Tile> _tiles;
 		size_t _width;
 		size_t _height;
+
 	public:
 		WorldState(size_t width, size_t height) : _tiles(width * height) {
 			// Initialize the world with some default tiles (e.g., all grass)
