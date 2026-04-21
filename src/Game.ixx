@@ -5,6 +5,7 @@ import WorldState;
 import MapGenerator;
 
 namespace OpenKaiser {
+
 	export class Game {
 	private:
 		sdl::WindowPtr window;
@@ -15,7 +16,7 @@ namespace OpenKaiser {
 
 		WorldState world;
 
-		bool Update() {
+		bool update() {
 			sdl::Event event;
 			while (sdl::poll_event(event)) {
 				if (event.type == sdl::EventType::Quit) {
@@ -25,18 +26,18 @@ namespace OpenKaiser {
 				if (event.type == sdl::EventType::KeyDown) {
 					if(event.key.key == 32) {
 						std::cout << "Regenerating World...\n";
-						InitWorldState();
+						this->init_world_state();
 					}
 				}
 			}
 			return true;
 		}
 
-		void Draw() {
+		void draw() {
 			sdl::set_render_draw_color(this->renderer, 11, 11, 11, 255);
 			sdl::render_clear(this->renderer);
 
-			const Uint8 tileSize = 16;
+			const uint8_t tileSize = 16;
 			for (int x = 0; x < (this->width / tileSize); x++) {
 				for (int y = 0; y < (this->height / tileSize); y++) {
 					if (x >= this->world.tiles().extent(0) || y >= this->world.tiles().extent(1)) {
@@ -73,12 +74,12 @@ namespace OpenKaiser {
 							sdl::render_line(this->renderer, x * tileSize, y * tileSize, (x + 1) * tileSize, y * tileSize);
 						}
 						// Right
-						if (x < this->world.tiles().extent(0) - 1 && currentTile.countryId != this->world.tiles()[x - 1, y].countryId) {
+						if (x < this->world.tiles().extent(0) - 1 && currentTile.countryId != this->world.tiles()[x + 1, y].countryId) {
 							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
 							sdl::render_line(this->renderer, (x + 1) * tileSize - 1, y * tileSize, (x + 1) * tileSize - 1, (y + 1) * tileSize);
 						}
 						// Bottom
-						if (y < this->world.tiles().extent(1) - 1 && currentTile.countryId != this->world.tiles()[x, y - 1].countryId) {
+						if (y < this->world.tiles().extent(1) - 1 && currentTile.countryId != this->world.tiles()[x, y + 1].countryId) {
 							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
 							sdl::render_line(this->renderer, x * tileSize, (y + 1) * tileSize - 1, (x + 1) * tileSize, (y + 1) * tileSize - 1);
 						}
@@ -89,16 +90,17 @@ namespace OpenKaiser {
 			sdl::render_present(this->renderer);
 		}
 
-		void InitWorldState() {
+		void init_world_state() {
 			std::cout << "Initializing World...\n";
 			this->world = WorldState(80, 50);
 			FloatMapGenerator().generate(this->world);
 			this->world.tiles()[10, 10].countryId = 1;
+			this->world.tiles()[11, 10].countryId = 1;
 		}
 
 	public:
-		void Init() {
-			InitWorldState();
+		void init() {
+			init_world_state();
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();
@@ -106,11 +108,11 @@ namespace OpenKaiser {
 			this->renderer = sdl::create_renderer(this->window.get());
 		}
 
-		void Run() {
+		void run() {
 			std::cout << "Running...\n";
 			try {
-				while (this->Update()) {
-					this->Draw();
+				while (this->update()) {
+					this->draw();
 				}
 			}
 			catch (const sdl::sdl_error& e) {
