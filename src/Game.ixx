@@ -61,7 +61,7 @@ namespace OpenKaiser {
 		void Init() {
 			std::cout << "Initializing World...\n";
 			this->world = WorldState(100, 100);
-			RandomMapGenerator().generate(this->world);
+			FloatMapGenerator().generate(this->world);
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();
