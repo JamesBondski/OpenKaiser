@@ -22,6 +22,12 @@ namespace OpenKaiser {
 					std::cout << "Quitting...\n";
 					return false;
 				}
+				if (event.type == sdl::EventType::KeyDown) {
+					if(event.key.key == 32) {
+						std::cout << "Regenerating World...\n";
+						InitWorldState();
+					}
+				}
 			}
 			return true;
 		}
@@ -59,11 +65,15 @@ namespace OpenKaiser {
 			sdl::render_present(this->renderer);
 		}
 
-	public:
-		void Init() {
+		void InitWorldState() {
 			std::cout << "Initializing World...\n";
 			this->world = WorldState(80, 50);
 			FloatMapGenerator().generate(this->world);
+		}
+
+	public:
+		void Init() {
+			InitWorldState();
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();

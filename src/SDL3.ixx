@@ -28,6 +28,7 @@ export namespace sdl {
     
     export namespace EventType {
         export constexpr Uint32 Quit = SDL_EVENT_QUIT;
+		export constexpr Uint32 KeyDown = SDL_EVENT_KEY_DOWN;
     }
 
     export class sdl_error : public std::runtime_error {
