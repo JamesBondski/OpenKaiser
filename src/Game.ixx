@@ -10,8 +10,8 @@ namespace OpenKaiser {
 		sdl::WindowPtr window;
 		sdl::RendererPtr renderer;
 
-		int width = 800;
-		int height = 600;
+		int width = 1280;
+		int height = 800;
 
 		WorldState world;
 
@@ -30,11 +30,13 @@ namespace OpenKaiser {
 			sdl::set_render_draw_color(this->renderer, 11, 11, 11, 255);
 			sdl::render_clear(this->renderer);
 
-			sdl::set_render_draw_color(this->renderer, 255, 0, 0, 255);
-			sdl::render_debug_text(this->renderer, 10, 10, "Hello World!");
+			const Uint8 tileSize = 16;
+			for (int x = 0; x < (this->width / tileSize); x++) {
+				for (int y = 0; y < (this->height / tileSize); y++) {
+					if (x >= this->world.tiles().extent(0) || y >= this->world.tiles().extent(1)) {
+						continue;
+					}
 
-			for (int x = 0; x < (this->width / 64); x++) {
-				for (int y = 0; y < (this->height / 64); y++) {
 					Tile currentTile = this->world.tiles()[x,y];
 
 					switch (currentTile.type) {
@@ -49,7 +51,7 @@ namespace OpenKaiser {
 						break;
 					}
 
-					sdl::FRect rect = { x * 64.0f, y * 64.0f, 63.0f, 63.0f };
+					sdl::FRect rect = { x * tileSize, y * tileSize, tileSize - 1, tileSize - 1};
 					sdl::render_fill_rect(this->renderer, rect);
 				}
 			}
@@ -60,7 +62,7 @@ namespace OpenKaiser {
 	public:
 		void Init() {
 			std::cout << "Initializing World...\n";
-			this->world = WorldState(100, 100);
+			this->world = WorldState(80, 50);
 			FloatMapGenerator().generate(this->world);
 
 			std::cout << "Initializing SDL...\n";

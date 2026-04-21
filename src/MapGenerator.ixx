@@ -23,7 +23,7 @@ namespace OpenKaiser {
 			for (size_t x = 0; x < tiles.extent(0); ++x) {
 				for (size_t y = 0; y < tiles.extent(1); ++y) {
 					// Fill the edges with water / lowest value
-					if(x == 0 || y == 0 || x == tiles.extent(0) - 1 || y == tiles.extent(1) - 1) {
+					if(x <= 1 || y <= 1 || x == tiles.extent(0) - 2 || y == tiles.extent(1) - 2) {
 						heightMapSpan[x, y] = 0.0f;
 					}
 					else {
@@ -32,7 +32,7 @@ namespace OpenKaiser {
 				}
 			}
 
-			const int scanWidth = 1;
+			const int scanWidth = 2;
 
 			// Try to smooth out the height map by averaging each tile with its neighbors
 			for (int x = 0; x < tiles.extent(0); ++x) {
@@ -40,22 +40,25 @@ namespace OpenKaiser {
 					// Iterate over neighbors and average their heights
 					// Let's add weights later
 					float value = 0.0f;
-					int count = 0;
+					float count = 0.0f;
 					for (int nx = x - scanWidth; nx <= x + scanWidth; ++nx) {
 						for(int ny = y - scanWidth; ny <= y + scanWidth; ++ny) {
 							if (nx >= 0 && nx < tiles.extent(0) && ny >= 0 && ny < tiles.extent(1)) {
-								count++;
-								value += heightMapSpan[nx, ny];
+								float distance = std::sqrt((nx - x) * (nx - x) + (ny - y) * (ny - y));
+								float weight = (distance == 0 ? 2 : 1 / distance);
+
+								count += weight;
+								value += heightMapSpan[nx, ny] * weight;
 							}
 						}
 					}
 
 					if (count > 0) {
 						value = value / count;
-						if (value <= 0.35 || x == 0 || y == 0 || x == tiles.extent(0) - 1 || y == tiles.extent(1) - 1) {
+						if (value <= 0.41 || x == 0 || y == 0 || x == tiles.extent(0) - 1 || y == tiles.extent(1) - 1) {
 							tiles[x, y].type = TileType::Water;
 						}
-						else if (value <= 0.67) {
+						else if (value <= 0.62) {
 							tiles[x, y].type = TileType::Grass;
 						}
 						else {
