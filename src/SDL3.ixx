@@ -37,7 +37,7 @@ export namespace sdl {
             : std::runtime_error(msg + ": " + SDL_GetError()) {}
     };
 
-    export bool init(SDL_InitFlags flags = SDL_INIT_VIDEO) {
+    export void init(SDL_InitFlags flags = SDL_INIT_VIDEO) {
         if (!SDL_Init(SDL_INIT_VIDEO)) {
             throw sdl_error("Failed to initialize SDL");
         }
@@ -92,4 +92,10 @@ export namespace sdl {
             throw sdl_error("Failed to fill rectangle");
         }
 	}
+
+	export void render_line(RendererPtr& renderer, float x1, float y1, float x2, float y2) {
+        if(!SDL_RenderLine(renderer.get(), x1, y1, x2, y2)) {
+            throw sdl_error("Failed to draw line");
+        }
+    }
 }

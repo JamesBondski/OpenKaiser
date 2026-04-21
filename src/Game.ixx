@@ -57,8 +57,32 @@ namespace OpenKaiser {
 						break;
 					}
 
-					sdl::FRect rect = { x * tileSize, y * tileSize, tileSize - 1, tileSize - 1};
+					sdl::FRect rect = { x * (float)tileSize, y * (float)tileSize, tileSize, tileSize};
 					sdl::render_fill_rect(this->renderer, rect);
+
+					// Draw country borders
+					if (currentTile.countryId != 0) {
+						// Left
+						if (x > 0 && currentTile.countryId != this->world.tiles()[x - 1, y].countryId) {
+							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
+							sdl::render_line(this->renderer, x * tileSize, y * tileSize, x * tileSize, (y + 1) * tileSize);
+						}
+						// Top
+						if (y > 0 && currentTile.countryId != this->world.tiles()[x, y - 1].countryId) {
+							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
+							sdl::render_line(this->renderer, x * tileSize, y * tileSize, (x + 1) * tileSize, y * tileSize);
+						}
+						// Right
+						if (x < this->world.tiles().extent(0) - 1 && currentTile.countryId != this->world.tiles()[x - 1, y].countryId) {
+							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
+							sdl::render_line(this->renderer, (x + 1) * tileSize - 1, y * tileSize, (x + 1) * tileSize - 1, (y + 1) * tileSize);
+						}
+						// Bottom
+						if (y < this->world.tiles().extent(1) - 1 && currentTile.countryId != this->world.tiles()[x, y - 1].countryId) {
+							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
+							sdl::render_line(this->renderer, x * tileSize, (y + 1) * tileSize - 1, (x + 1) * tileSize, (y + 1) * tileSize - 1);
+						}
+					}
 				}
 			}
 
@@ -69,6 +93,7 @@ namespace OpenKaiser {
 			std::cout << "Initializing World...\n";
 			this->world = WorldState(80, 50);
 			FloatMapGenerator().generate(this->world);
+			this->world.tiles()[10, 10].countryId = 1;
 		}
 
 	public:

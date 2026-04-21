@@ -11,6 +11,12 @@ export namespace OpenKaiser {
 
 	export struct Tile {
 		TileType type;
+		int countryId;
+	};
+
+	export struct Country {
+		int id;
+		std::string name;
 	};
 
 	export class WorldState {
