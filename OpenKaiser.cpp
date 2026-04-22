@@ -8,7 +8,7 @@ int main()
 		game.init();
 		game.run();
 	}
-	catch (const sdl::sdl_error& e) {
-		std::cout << "SDL Error: " << e.what() << std::endl;
+	catch (const std::runtime_error& e) {
+		std::cout << typeid(e).name() << e.what() << std::endl;
 	}
 }

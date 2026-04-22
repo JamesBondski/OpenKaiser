@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.ixx" />
+    <ClCompile Include="General.ixx" />
     <ClCompile Include="MapGenerator.ixx" />
     <ClCompile Include="OpenKaiser.cpp" />
     <ClCompile Include="SDL3.ixx" />

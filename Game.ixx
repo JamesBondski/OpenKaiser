@@ -3,6 +3,9 @@ import std;
 import SDL3;
 import WorldState;
 import MapGenerator;
+import General;
+
+using std::uint8_t;
 
 namespace OpenKaiser {
 
@@ -15,6 +18,8 @@ namespace OpenKaiser {
 		int height = 800;
 
 		WorldState world;
+
+		std::vector<std::tuple<uint8_t, uint8_t, uint8_t>> country_colors;
 
 		bool update() {
 			sdl::Event event;
@@ -31,6 +36,32 @@ namespace OpenKaiser {
 				}
 			}
 			return true;
+		}
+
+		void load_country_colors() {
+			const std::string config_location = "data/config/country_colors.txt";
+			std::ifstream config_file(config_location);
+			// Check for errors
+			if (config_file.bad()) {
+				throw OpenKaiserError("Could not open Country Colors file in " + config_location);
+			}
+
+			std::string line;
+			while (std::getline(config_file, line)) {
+				std::stringstream splitter(line);
+				int r, g, b;
+				splitter >> r >> g >> b;
+
+				if (!splitter.good()) {
+					throw OpenKaiserError("Error parsing color: " + line);
+				}
+
+				country_colors.push_back({
+					static_cast<uint8_t>(r),
+					static_cast<uint8_t>(g),
+					static_cast<uint8_t>(b)
+					});
+			}
 		}
 
 		void draw() {
@@ -63,24 +94,23 @@ namespace OpenKaiser {
 
 					// Draw country borders
 					if (currentTile.countryId != 0) {
+						auto cc = this->country_colors[currentTile.countryId];
+						uint8_t r = std::get<0>(cc);
+						sdl::set_render_draw_color(this->renderer, std::get<0>(cc), std::get<0>(cc), std::get<0>(cc), 255);
 						// Left
 						if (x > 0 && currentTile.countryId != this->world.tiles()[x - 1, y].countryId) {
-							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
 							sdl::render_line(this->renderer, x * tileSize, y * tileSize, x * tileSize, (y + 1) * tileSize);
 						}
 						// Top
 						if (y > 0 && currentTile.countryId != this->world.tiles()[x, y - 1].countryId) {
-							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
 							sdl::render_line(this->renderer, x * tileSize, y * tileSize, (x + 1) * tileSize, y * tileSize);
 						}
 						// Right
 						if (x < this->world.tiles().extent(0) - 1 && currentTile.countryId != this->world.tiles()[x + 1, y].countryId) {
-							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
 							sdl::render_line(this->renderer, (x + 1) * tileSize - 1, y * tileSize, (x + 1) * tileSize - 1, (y + 1) * tileSize);
 						}
 						// Bottom
 						if (y < this->world.tiles().extent(1) - 1 && currentTile.countryId != this->world.tiles()[x, y + 1].countryId) {
-							sdl::set_render_draw_color(this->renderer, 0, 0, 0, 255);
 							sdl::render_line(this->renderer, x * tileSize, (y + 1) * tileSize - 1, (x + 1) * tileSize, (y + 1) * tileSize - 1);
 						}
 					}
@@ -94,13 +124,14 @@ namespace OpenKaiser {
 			std::cout << "Initializing World...\n";
 			this->world = WorldState(80, 50);
 			FloatMapGenerator().generate(this->world);
-			this->world.tiles()[10, 10].countryId = 1;
-			this->world.tiles()[11, 10].countryId = 1;
+			this->world.tiles()[10, 10].countryId = 2;
+			this->world.tiles()[11, 10].countryId = 2;
 		}
 
 	public:
 		void init() {
 			init_world_state();
+			load_country_colors();
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();

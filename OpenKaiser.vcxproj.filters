@@ -9,5 +9,6 @@
     <ClCompile Include="OpenKaiser.cpp" />
     <ClCompile Include="SDL3.ixx" />
     <ClCompile Include="WorldState.ixx" />
+    <ClCompile Include="General.ixx" />
   </ItemGroup>
 </Project>
