@@ -11,7 +11,7 @@ export namespace OpenKaiser {
 
 	export struct Tile {
 		TileType type;
-		int countryId;
+		int countryId = -1;
 	};
 
 	export struct Country {

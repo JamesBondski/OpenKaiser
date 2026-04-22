@@ -93,7 +93,7 @@ namespace OpenKaiser {
 					sdl::render_fill_rect(this->renderer, rect);
 
 					// Draw country borders
-					if (currentTile.countryId != 0) {
+					if (currentTile.countryId >= 0) {
 						auto cc = this->country_colors[currentTile.countryId];
 						uint8_t r = std::get<0>(cc);
 						sdl::set_render_draw_color(this->renderer, std::get<0>(cc), std::get<0>(cc), std::get<0>(cc), 255);
