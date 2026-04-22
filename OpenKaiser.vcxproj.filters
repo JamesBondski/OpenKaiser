@@ -1,28 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="src">
-      <UniqueIdentifier>{20ed9956-f35a-4ba9-843f-0f18def92172}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Game.ixx">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\OpenKaiser.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\SDL3.ixx">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\WorldState.ixx">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MapGenerator.ixx">
-      <Filter>src</Filter>
-    </ClCompile>
+    <ClCompile Include="Game.ixx" />
+    <ClCompile Include="MapGenerator.ixx" />
+    <ClCompile Include="OpenKaiser.cpp" />
+    <ClCompile Include="SDL3.ixx" />
+    <ClCompile Include="WorldState.ixx" />
   </ItemGroup>
 </Project>

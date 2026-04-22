@@ -37,7 +37,7 @@ namespace OpenKaiser {
 			sdl::set_render_draw_color(this->renderer, 11, 11, 11, 255);
 			sdl::render_clear(this->renderer);
 
-			const uint8_t tileSize = 16;
+			const float tileSize = 16;
 			for (int x = 0; x < (this->width / tileSize); x++) {
 				for (int y = 0; y < (this->height / tileSize); y++) {
 					if (x >= this->world.tiles().extent(0) || y >= this->world.tiles().extent(1)) {
@@ -58,7 +58,7 @@ namespace OpenKaiser {
 						break;
 					}
 
-					sdl::FRect rect = { x * (float)tileSize, y * (float)tileSize, tileSize, tileSize};
+					sdl::FRect rect = { x * tileSize, y * tileSize, tileSize, tileSize};
 					sdl::render_fill_rect(this->renderer, rect);
 
 					// Draw country borders

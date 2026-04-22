@@ -134,11 +134,11 @@
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Game.ixx" />
-    <ClCompile Include="src\MapGenerator.ixx" />
-    <ClCompile Include="src\OpenKaiser.cpp" />
-    <ClCompile Include="src\SDL3.ixx" />
-    <ClCompile Include="src\WorldState.ixx" />
+    <ClCompile Include="Game.ixx" />
+    <ClCompile Include="MapGenerator.ixx" />
+    <ClCompile Include="OpenKaiser.cpp" />
+    <ClCompile Include="SDL3.ixx" />
+    <ClCompile Include="WorldState.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
