@@ -71,11 +71,11 @@ namespace OpenKaiser {
 			const float tileSize = 16;
 			for (int x = 0; x < (this->width / tileSize); x++) {
 				for (int y = 0; y < (this->height / tileSize); y++) {
-					if (x >= this->world.tiles().extent(0) || y >= this->world.tiles().extent(1)) {
+					if (x >= this->world.tiles().width() || y >= this->world.tiles().height()) {
 						continue;
 					}
 
-					Tile currentTile = this->world.tiles()[std::array{ x,y }];
+					Tile currentTile = this->world.tiles()(x,y);
 
 					switch (currentTile.type) {
 					case TileType::Grass:
@@ -98,19 +98,19 @@ namespace OpenKaiser {
 						uint8_t r = std::get<0>(cc);
 						sdl::set_render_draw_color(this->renderer, std::get<0>(cc), std::get<1>(cc), std::get<2>(cc), 255);
 						// Left
-						if (x > 0 && currentTile.countryId != this->world.tiles()[std::array{ x - 1, y }].countryId) {
+						if (x > 0 && currentTile.countryId != this->world.tiles()(x - 1, y).countryId) {
 							sdl::render_line(this->renderer, x * tileSize, y * tileSize, x * tileSize, (y + 1) * tileSize);
 						}
 						// Top
-						if (y > 0 && currentTile.countryId != this->world.tiles()[std::array{ x, y - 1 }].countryId) {
+						if (y > 0 && currentTile.countryId != this->world.tiles()(x, y - 1).countryId) {
 							sdl::render_line(this->renderer, x * tileSize, y * tileSize, (x + 1) * tileSize, y * tileSize);
 						}
 						// Right
-						if (x < this->world.tiles().extent(0) - 1 && currentTile.countryId != this->world.tiles()[std::array{ x + 1, y }].countryId) {
+						if (x < this->world.tiles().width() - 1 && currentTile.countryId != this->world.tiles()(x + 1, y).countryId) {
 							sdl::render_line(this->renderer, (x + 1) * tileSize - 1, y * tileSize, (x + 1) * tileSize - 1, (y + 1) * tileSize);
 						}
 						// Bottom
-						if (y < this->world.tiles().extent(1) - 1 && currentTile.countryId != this->world.tiles()[std::array{ x, y + 1 }].countryId) {
+						if (y < this->world.tiles().height() - 1 && currentTile.countryId != this->world.tiles()(x, y + 1).countryId) {
 							sdl::render_line(this->renderer, x * tileSize, (y + 1) * tileSize - 1, (x + 1) * tileSize, (y + 1) * tileSize - 1);
 						}
 					}

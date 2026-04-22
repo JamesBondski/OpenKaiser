@@ -19,29 +19,38 @@ export namespace OpenKaiser {
 		std::string name;
 	};
 
+	export class TileArray {
+	private:
+		std::vector<Tile> tiles;
+		std::mdspan<Tile, std::dextents<size_t, 2>> span;
+	public:
+		TileArray(size_t width, size_t height) : tiles(width * height), span(tiles.data(), width, height) {
+		}
+
+		TileArray() {
+		}
+
+		Tile& operator()(size_t x, size_t y) { return span[std::array{ x,y }]; }
+		const Tile& operator()(size_t x, size_t y) const { return span[std::array{ x,y }]; }
+
+		size_t width() { return span.extent(0); }
+		size_t height() { return span.extent(1); }
+	};
+
 	export class WorldState {
 	private:
-		std::vector<Tile> _tiles;
-		size_t _width;
-		size_t _height;
+		TileArray _tiles;
 		int mapSeed;
 
 	public:
-		WorldState(size_t width, size_t height) : _tiles(width * height) {
-			// Initialize the world with some default tiles (e.g., all grass)
-			std::fill(_tiles.begin(), _tiles.end(), Tile{TileType::Grass});
-			_width = width;
-			_height = height;
+		WorldState(size_t width, size_t height) : _tiles(width, height) {
 		}
 
 		WorldState() {
-			_width = 0;
-			_height = 0;
-
 		}
 
 		auto tiles() {
-			return std::mdspan(_tiles.data(), _width, _height);
+			return this->_tiles;
 		}
 
 		int getMapSeed() {

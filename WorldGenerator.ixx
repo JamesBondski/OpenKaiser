@@ -22,12 +22,12 @@ namespace OpenKaiser {
 			auto tiles = state.tiles();
 
 			// Fill initial height map with random values
-			std::vector<float> heightMap(tiles.size());
-			std::mdspan<float, std::dextents<size_t, 2>> heightMapSpan(heightMap.data(), tiles.extent(0), tiles.extent(1));
-			for (size_t x = 0; x < tiles.extent(0); ++x) {
-				for (size_t y = 0; y < tiles.extent(1); ++y) {
+			std::vector<float> heightMap(tiles.height() * tiles.width());
+			std::mdspan<float, std::dextents<size_t, 2>> heightMapSpan(heightMap.data(), tiles.width(), tiles.height());
+			for (size_t x = 0; x < tiles.width(); ++x) {
+				for (size_t y = 0; y < tiles.height(); ++y) {
 					// Fill the edges with water / lowest value
-					if(x <= 1 || y <= 1 || x == tiles.extent(0) - 2 || y == tiles.extent(1) - 2) {
+					if(x <= 1 || y <= 1 || x == tiles.width() - 2 || y == tiles.height() - 2) {
 						heightMapSpan[std::array{ x, y }] = 0.0f;
 					}
 					else {
@@ -39,15 +39,15 @@ namespace OpenKaiser {
 			const int scanWidth = 2;
 
 			// Try to smooth out the height map by averaging each tile with its neighbors
-			for (int x = 0; x < tiles.extent(0); ++x) {
-				for (int y = 0; y < tiles.extent(1); ++y) {
+			for (int x = 0; x < tiles.width(); ++x) {
+				for (int y = 0; y < tiles.height(); ++y) {
 					// Iterate over neighbors and average their heights
 					// Let's add weights later
 					float value = 0.0f;
 					float count = 0.0f;
 					for (int nx = x - scanWidth; nx <= x + scanWidth; ++nx) {
 						for(int ny = y - scanWidth; ny <= y + scanWidth; ++ny) {
-							if (nx >= 0 && nx < tiles.extent(0) && ny >= 0 && ny < tiles.extent(1)) {
+							if (nx >= 0 && nx < tiles.width() && ny >= 0 && ny < tiles.height()) {
 								float distance = std::sqrt((nx - x) * (nx - x) + (ny - y) * (ny - y));
 								float weight = (distance == 0 ? 2 : 1 / distance);
 
@@ -59,14 +59,14 @@ namespace OpenKaiser {
 
 					if (count > 0) {
 						value = value / count;
-						if (value <= 0.41 || x == 0 || y == 0 || x == tiles.extent(0) - 1 || y == tiles.extent(1) - 1) {
-							tiles[std::array{ x, y }].type = TileType::Water;
+						if (value <= 0.41 || x == 0 || y == 0 || x == tiles.width() - 1 || y == tiles.height() - 1) {
+							tiles(x, y).type = TileType::Water;
 						}
 						else if (value <= 0.62) {
-							tiles[std::array{ x, y }].type = TileType::Grass;
+							tiles(x, y).type = TileType::Grass;
 						}
 						else {
-							tiles[std::array{ x, y }].type = TileType::Mountain;
+							tiles(x, y).type = TileType::Mountain;
 						}
 					}
 				}
@@ -81,8 +81,8 @@ namespace OpenKaiser {
 		}
 
 		std::pair<int, int> get_starting_location(WorldState& state, std::mt19937& gen) {
-			std::uniform_int_distribution<int> x_dist(0, (int)state.tiles().extent(0) - 1);
-			std::uniform_int_distribution<int> y_dist(0, (int)state.tiles().extent(1) - 1);
+			std::uniform_int_distribution<int> x_dist(0, (int)state.tiles().width() - 1);
+			std::uniform_int_distribution<int> y_dist(0, (int)state.tiles().height() - 1);
 
 			auto coords = std::pair(x_dist(gen), y_dist(gen));
 			while (!this->check_starting_location(state, coords)) {
@@ -112,7 +112,7 @@ namespace OpenKaiser {
 			for (int i = 0; i < config.numCountries; i++) {
 				std::pair<int, int> coords = get_starting_location(state, gen);
 				
-				Tile& tile = state.tiles()[std::array{ (size_t)coords.first, (size_t)coords.second }];
+				Tile& tile = state.tiles()(coords.first, coords.second);
 				tile.countryId = i;
 			}
 			return state;
