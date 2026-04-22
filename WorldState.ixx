@@ -49,7 +49,7 @@ export namespace OpenKaiser {
 		WorldState() {
 		}
 
-		auto tiles() {
+		TileArray& tiles() {
 			return this->_tiles;
 		}
 

@@ -76,7 +76,38 @@ namespace OpenKaiser {
 
 	export class WorldGenerator {
 	private:
+		bool tile_is_valid(const Tile& tile) {
+			if (tile.type == TileType::Water) {
+				return false;
+			}
+			if (tile.countryId != -1) {
+				return false;
+			}
+			return true;
+		}
+
 		bool check_starting_location(WorldState& state, std::pair<int, int> coords) {
+			TileArray& tiles = state.tiles();
+			if (!tile_is_valid(tiles(coords.first, coords.second))) {
+				return false;
+			}
+			// Left
+			if (coords.first > 0 && !tile_is_valid(tiles(coords.first - 1, coords.second))) {
+				return false;
+			}
+			// Top
+			if (coords.second > 0 && !tile_is_valid(tiles(coords.first, coords.second - 1))) {
+				return false;
+			}
+			// Right
+			if (coords.first < state.tiles().width() && !tile_is_valid(tiles(coords.first + 1, coords.second))) {
+				return false;
+			}
+			// Bottom
+			if (coords.second < state.tiles().height() && !tile_is_valid(tiles(coords.first, coords.second + 1))) {
+				return false;
+			}
+
 			return true;
 		}
 
@@ -88,6 +119,7 @@ namespace OpenKaiser {
 			while (!this->check_starting_location(state, coords)) {
 				coords = std::pair(x_dist(gen), y_dist(gen));
 			}
+
 			return coords;
 		}
 	public:
@@ -112,8 +144,11 @@ namespace OpenKaiser {
 			for (int i = 0; i < config.numCountries; i++) {
 				std::pair<int, int> coords = get_starting_location(state, gen);
 				
-				Tile& tile = state.tiles()(coords.first, coords.second);
-				tile.countryId = i;
+				state.tiles()(coords.first, coords.second).countryId = i;
+				state.tiles()(coords.first - 1, coords.second).countryId = i;
+				state.tiles()(coords.first, coords.second - 1).countryId = i;
+				state.tiles()(coords.first + 1, coords.second).countryId = i;
+				state.tiles()(coords.first, coords.second + 1).countryId = i;
 			}
 			return state;
 		}
