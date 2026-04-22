@@ -24,6 +24,7 @@ export namespace OpenKaiser {
 		std::vector<Tile> _tiles;
 		size_t _width;
 		size_t _height;
+		int mapSeed;
 
 	public:
 		WorldState(size_t width, size_t height) : _tiles(width * height) {
@@ -41,6 +42,14 @@ export namespace OpenKaiser {
 
 		auto tiles() {
 			return std::mdspan(_tiles.data(), _width, _height);
+		}
+
+		int getMapSeed() {
+			return this->mapSeed;
+		}
+
+		void setMapSeed(int value) {
+			this->mapSeed = value;
 		}
 	};
 
