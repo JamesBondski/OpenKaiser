@@ -23,16 +23,15 @@ namespace OpenKaiser {
 			auto tiles = state.tiles();
 
 			// Fill initial height map with random values
-			std::vector<float> heightMap(tiles.height() * tiles.width());
-			std::mdspan<float, std::dextents<size_t, 2>> heightMapSpan(heightMap.data(), tiles.width(), tiles.height());
+			Array2D<float> heightMap(tiles.width(), tiles.height());
 			for (size_t x = 0; x < tiles.width(); ++x) {
 				for (size_t y = 0; y < tiles.height(); ++y) {
 					// Fill the edges with water / lowest value
 					if(x <= 1 || y <= 1 || x == tiles.width() - 2 || y == tiles.height() - 2) {
-						heightMapSpan[std::array{ x, y }] = 0.0f;
+						heightMap(x, y) = 0.0f;
 					}
 					else {
-						heightMapSpan[std::array{ x, y }] = dist(gen);
+						heightMap(x, y) = dist(gen);
 					}
 				}
 			}
@@ -53,7 +52,7 @@ namespace OpenKaiser {
 								float weight = (distance == 0 ? 2 : 1 / distance);
 
 								count += weight;
-								value += heightMapSpan[std::array{ nx, ny }] * weight;
+								value += heightMap(nx, ny) * weight;
 							}
 						}
 					}
@@ -88,7 +87,7 @@ namespace OpenKaiser {
 		}
 
 		bool check_starting_location(WorldState& state, std::pair<int, int> coords) {
-			TileArray& tiles = state.tiles();
+			Array2D<Tile>& tiles = state.tiles();
 			if (!tile_is_valid(tiles(coords.first, coords.second))) {
 				return false;
 			}
