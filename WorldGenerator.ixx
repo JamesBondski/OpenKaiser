@@ -2,6 +2,7 @@ export module WorldGenerator;
 
 import std;
 import WorldState;
+import General;
 
 namespace OpenKaiser {
 
@@ -10,8 +11,8 @@ namespace OpenKaiser {
 	};
 
 	export struct WorldConfig {
-		int width = 40;
-		int height = 30;
+		int width = 50;
+		int height = 35;
 		int numCountries = 10;
 	};
 
@@ -116,8 +117,14 @@ namespace OpenKaiser {
 			std::uniform_int_distribution<int> y_dist(0, (int)state.tiles().height() - 1);
 
 			auto coords = std::pair(x_dist(gen), y_dist(gen));
+			int count = 0;
 			while (!this->check_starting_location(state, coords)) {
 				coords = std::pair(x_dist(gen), y_dist(gen));
+				count++;
+
+				if (count > 1000) {
+					throw OpenKaiserError("Could not find a valid starting location.");
+				}
 			}
 
 			return coords;
@@ -144,6 +151,7 @@ namespace OpenKaiser {
 			for (int i = 0; i < config.numCountries; i++) {
 				std::pair<int, int> coords = get_starting_location(state, gen);
 				
+				// Assign initial tiles
 				state.tiles()(coords.first, coords.second).countryId = i;
 				state.tiles()(coords.first - 1, coords.second).countryId = i;
 				state.tiles()(coords.first, coords.second - 1).countryId = i;
