@@ -10,5 +10,7 @@
     <ClCompile Include="SDL3.ixx" />
     <ClCompile Include="WorldState.ixx" />
     <ClCompile Include="General.ixx" />
+    <ClCompile Include="ImageManager.ixx" />
+    <ClCompile Include="MapRenderer.ixx" />
   </ItemGroup>
 </Project>
