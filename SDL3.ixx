@@ -6,6 +6,8 @@
 
 export module SDL3;
 
+import std;
+
 export namespace sdl {
     struct WindowDeleter {
         void operator()(SDL_Window* window) const {
@@ -19,8 +21,15 @@ export namespace sdl {
         }
     };
 
+    struct TextureDeleter {
+        void operator()(SDL_Texture* texture) const {
+            SDL_DestroyTexture(texture);
+        }
+    };
+
     export using WindowPtr = std::unique_ptr<SDL_Window, WindowDeleter>;
     export using RendererPtr = std::unique_ptr<SDL_Renderer, RendererDeleter>;
+    export using TexturePtr = std::shared_ptr<SDL_Texture>;
 
     export using WindowFlags = SDL_WindowFlags;
     export using Event = SDL_Event;
@@ -96,6 +105,30 @@ export namespace sdl {
 	export void render_line(RendererPtr& renderer, float x1, float y1, float x2, float y2) {
         if(!SDL_RenderLine(renderer.get(), x1, y1, x2, y2)) {
             throw sdl_error("Failed to draw line");
+        }
+    }
+
+    inline TexturePtr make_texture(SDL_Texture* texture) {
+        return TexturePtr(texture, TextureDeleter{});
+    }
+
+    export TexturePtr load_texture(RendererPtr& renderer, std::string_view path) {
+        SDL_Surface* surface = SDL_LoadPNG(path.data());
+        if (!surface) {
+            throw sdl_error(std::format("Failed to load image from {}", path));
+        }
+
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer.get(), surface);
+        SDL_DestroySurface(surface);
+        if (!texture) {
+            throw sdl_error(std::format("Failed to create texture from {}", path));
+        }
+        return make_texture(texture);
+    }
+
+    export void render_texture(RendererPtr& renderer, TexturePtr& texture, const FRect& rect) {
+        if (!SDL_RenderTexture(renderer.get(), texture.get(), NULL, &rect)) {
+            throw sdl_error("Error rendering texture.");
         }
     }
 }

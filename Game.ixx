@@ -5,6 +5,7 @@ import WorldState;
 import WorldGenerator;
 import General;
 import MapRenderer;
+import ImageManager;
 
 using std::uint8_t;
 
@@ -16,6 +17,7 @@ namespace OpenKaiser {
 		sdl::RendererPtr renderer;
 
 		MapRenderer mapRenderer;
+		ImageManager imageManager;
 
 		int width = 1280;
 		int height = 800;
@@ -58,7 +60,8 @@ namespace OpenKaiser {
 
 			std::cout << "Initializung UI...\n";
 			sdl::FRect mapArea(0, 0, this->width, this->height);
-			this->mapRenderer.set_screen_area(mapArea);
+			this->mapRenderer.init(this->imageManager, this->renderer, mapArea);
+			this->mapRenderer.set_render_mode(RenderMode::Image);
 		}
 
 		void run() {
