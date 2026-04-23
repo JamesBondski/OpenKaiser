@@ -14,6 +14,8 @@ namespace OpenKaiser {
 		sdl::FRect screenArea;
 		std::vector<std::tuple<uint8_t, uint8_t, uint8_t>> country_colors;
 
+		float tileSize = 16;
+
 		void load_country_colors() {
 			const std::string config_location = "data/config/country_colors.txt";
 			std::ifstream config_file(config_location);
@@ -40,62 +42,79 @@ namespace OpenKaiser {
 			}
 		}
 
+		void draw_tile_rect(sdl::RendererPtr& renderer, Tile& currentTile, int x, int y)
+		{
+			switch (currentTile.type) {
+			case TileType::Grass:
+				sdl::set_render_draw_color(renderer, 76, 153, 0, 255);
+				break;
+			case TileType::Water:
+				sdl::set_render_draw_color(renderer, 41, 128, 185, 255);
+				break;
+			case TileType::Mountain:
+				sdl::set_render_draw_color(renderer, 127, 140, 141, 255);
+				break;
+			}
+
+			sdl::FRect rect = { screenArea.x + x * this->tileSize, screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
+			sdl::render_fill_rect(renderer, rect);
+		}
+
+		void draw_borders(sdl::RendererPtr& renderer, WorldState& world, Tile& currentTile, int x, int y)
+		{
+			// Draw country borders
+			if (currentTile.countryId >= 0) {
+				auto cc = this->country_colors[currentTile.countryId];
+				uint8_t r = std::get<0>(cc);
+				sdl::set_render_draw_color(renderer, std::get<0>(cc), std::get<1>(cc), std::get<2>(cc), 255);
+				// Left
+				if (x > 0 && currentTile.countryId != world.tiles()(x - 1, y).countryId) {
+					sdl::render_line(renderer, x * this->tileSize, y * this->tileSize, x * this->tileSize, (y + 1) * this->tileSize);
+				}
+				// Top
+				if (y > 0 && currentTile.countryId != world.tiles()(x, y - 1).countryId) {
+					sdl::render_line(renderer, x * this->tileSize, y * this->tileSize, (x + 1) * this->tileSize, y * this->tileSize);
+				}
+				// Right
+				if (x < world.tiles().width() - 1 && currentTile.countryId != world.tiles()(x + 1, y).countryId) {
+					sdl::render_line(renderer, (x + 1) * this->tileSize - 1, y * this->tileSize, (x + 1) * this->tileSize - 1, (y + 1) * this->tileSize);
+				}
+				// Bottom
+				if (y < world.tiles().height() - 1 && currentTile.countryId != world.tiles()(x, y + 1).countryId) {
+					sdl::render_line(renderer, x * this->tileSize, (y + 1) * this->tileSize - 1, (x + 1) * this->tileSize, (y + 1) * this->tileSize - 1);
+				}
+			}
+		}
+
 	public:
 		MapRenderer() {
 			this->load_country_colors();
 		}
 
-		void set_screenArea(sdl::FRect& screenArea) {
+		void set_screen_area(sdl::FRect& screenArea) {
 			this->screenArea = screenArea;
 		}
 
+		void set_tile_size(float tileSize) {
+			this->tileSize = tileSize;
+		}
+
+		float get_tile_size() {
+			return this->tileSize;
+		}
+
 		void draw(sdl::RendererPtr& renderer, WorldState& world) {
-			const float tileSize = 16;
-			for (int x = 0; x < (this->screenArea.w / tileSize); x++) {
-				for (int y = 0; y < (this->screenArea.h / tileSize); y++) {
+			for (int x = 0; x < (this->screenArea.w / this->tileSize); x++) {
+				for (int y = 0; y < (this->screenArea.h / this->tileSize); y++) {
 					if (x >= world.tiles().width() || y >= world.tiles().height()) {
 						continue;
 					}
 
 					Tile currentTile = world.tiles()(x, y);
 
-					switch (currentTile.type) {
-					case TileType::Grass:
-						sdl::set_render_draw_color(renderer, 76, 153, 0, 255);
-						break;
-					case TileType::Water:
-						sdl::set_render_draw_color(renderer, 41, 128, 185, 255);
-						break;
-					case TileType::Mountain:
-						sdl::set_render_draw_color(renderer, 127, 140, 141, 255);
-						break;
-					}
+					draw_tile_rect(renderer, currentTile, x, y);
 
-					sdl::FRect rect = { screenArea.x + x * tileSize, screenArea.y + y * tileSize, tileSize, tileSize };
-					sdl::render_fill_rect(renderer, rect);
-
-					// Draw country borders
-					if (currentTile.countryId >= 0) {
-						auto cc = this->country_colors[currentTile.countryId];
-						uint8_t r = std::get<0>(cc);
-						sdl::set_render_draw_color(renderer, std::get<0>(cc), std::get<1>(cc), std::get<2>(cc), 255);
-						// Left
-						if (x > 0 && currentTile.countryId != world.tiles()(x - 1, y).countryId) {
-							sdl::render_line(renderer, x * tileSize, y * tileSize, x * tileSize, (y + 1) * tileSize);
-						}
-						// Top
-						if (y > 0 && currentTile.countryId != world.tiles()(x, y - 1).countryId) {
-							sdl::render_line(renderer, x * tileSize, y * tileSize, (x + 1) * tileSize, y * tileSize);
-						}
-						// Right
-						if (x < world.tiles().width() - 1 && currentTile.countryId != world.tiles()(x + 1, y).countryId) {
-							sdl::render_line(renderer, (x + 1) * tileSize - 1, y * tileSize, (x + 1) * tileSize - 1, (y + 1) * tileSize);
-						}
-						// Bottom
-						if (y < world.tiles().height() - 1 && currentTile.countryId != world.tiles()(x, y + 1).countryId) {
-							sdl::render_line(renderer, x * tileSize, (y + 1) * tileSize - 1, (x + 1) * tileSize, (y + 1) * tileSize - 1);
-						}
-					}
+					draw_borders(renderer, world, currentTile, x, y);
 				}
 			}
 

@@ -58,7 +58,7 @@ namespace OpenKaiser {
 
 			std::cout << "Initializung UI...\n";
 			sdl::FRect mapArea(0, 0, this->width, this->height);
-			this->mapRenderer.set_screenArea(mapArea);
+			this->mapRenderer.set_screen_area(mapArea);
 		}
 
 		void run() {
