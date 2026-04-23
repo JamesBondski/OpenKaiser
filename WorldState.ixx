@@ -18,13 +18,13 @@ export namespace OpenKaiser {
 
 	export struct Tile {
 		TileType type;
-		std::uint8_t countryId = -1;
+		std::int16_t countryId = -1;
 		BuildingType building;
 		std::uint32_t population;
 	};
 
 	export struct Country {
-		std::uint8_t id;
+		std::int16_t id;
 		std::string name;
 	};
 

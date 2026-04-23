@@ -1,8 +1,10 @@
+module;
 #include <SDL3/SDL.h>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <stdexcept>
+#include <SDL3_TTF/SDL_ttf.h>
 
 export module SDL3;
 
@@ -28,12 +30,13 @@ export namespace sdl {
     };
 
     export using WindowPtr = std::unique_ptr<SDL_Window, WindowDeleter>;
-    export using RendererPtr = std::unique_ptr<SDL_Renderer, RendererDeleter>;
+    export using RendererPtr = std::shared_ptr<SDL_Renderer>;
     export using TexturePtr = std::shared_ptr<SDL_Texture>;
 
     export using WindowFlags = SDL_WindowFlags;
     export using Event = SDL_Event;
     export using FRect = SDL_FRect;
+    export using Color = SDL_Color;
     
     export namespace EventType {
         export constexpr Uint32 Quit = SDL_EVENT_QUIT;
@@ -60,12 +63,16 @@ export namespace sdl {
         return WindowPtr(window);
     }
 
+    inline RendererPtr make_renderer_ptr(SDL_Renderer* renderer) {
+        return RendererPtr(renderer, RendererDeleter{});
+    }
+
     export RendererPtr create_renderer(SDL_Window* window) {
 		auto renderer = SDL_CreateRenderer(window, nullptr);
         if(!renderer) {
             throw sdl_error("Failed to create renderer");
 		}
-        return RendererPtr(renderer);
+        return make_renderer_ptr(renderer);
     }
 
     export bool poll_event(Event& event) {
@@ -108,7 +115,7 @@ export namespace sdl {
         }
     }
 
-    inline TexturePtr make_texture(SDL_Texture* texture) {
+    inline TexturePtr make_texture_ptr(SDL_Texture* texture) {
         return TexturePtr(texture, TextureDeleter{});
     }
 
@@ -123,12 +130,50 @@ export namespace sdl {
         if (!texture) {
             throw sdl_error("Failed to create texture from " + std::string(path));
         }
-        return make_texture(texture);
+        return make_texture_ptr(texture);
     }
 
     export void render_texture(RendererPtr& renderer, TexturePtr& texture, const FRect& rect) {
         if (!SDL_RenderTexture(renderer.get(), texture.get(), NULL, &rect)) {
             throw sdl_error("Error rendering texture.");
         }
+    }
+
+    // SDL3_ttf
+    struct FontDeleter {
+        void operator()(TTF_Font* font) const {
+            TTF_CloseFont(font);
+        }
+    };
+
+    export using FontPtr = std::unique_ptr<TTF_Font, FontDeleter>;
+
+    export void ttf_init() {
+        if (!TTF_Init()) {
+            throw sdl_error("Error initializing SDL3_ttf.");
+        }
+    }
+
+    export FontPtr ttf_open_font(std::string_view file, float ptsize) {
+        TTF_Font* font = TTF_OpenFont(file.data(), ptsize);
+        if (!font) {
+            throw sdl_error("Error loading font " + std::string(file));
+        }
+
+        return FontPtr(font);
+    }
+
+    export TexturePtr ttf_render_text(RendererPtr& renderer, FontPtr& font, std::string_view text, Color color) {
+        SDL_Surface* surface = TTF_RenderText_Blended(font.get(), text.data(), 0, color);
+        if (!surface) {
+            throw sdl_error("Error rendering text " + std::string(text));
+        }
+
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer.get(), surface);
+        SDL_DestroySurface(surface);
+        if (!texture) {
+            throw sdl_error("Failed to create texture from text " + std::string(text));
+        }
+        return make_texture_ptr(texture);
     }
 }

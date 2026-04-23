@@ -17,7 +17,7 @@ namespace OpenKaiser {
 		sdl::RendererPtr renderer;
 
 		MapRenderer mapRenderer;
-		ImageManager imageManager;
+		ResourceManager resourceManager;
 
 		int width = 1280;
 		int height = 800;
@@ -45,7 +45,9 @@ namespace OpenKaiser {
 			sdl::set_render_draw_color(this->renderer, 11, 11, 11, 255);
 			sdl::render_clear(this->renderer);
 
-			this->mapRenderer.draw(this->renderer, this->world);
+			this->mapRenderer.draw(this->world);
+
+			sdl::render_present(renderer);
 		}
 
 	public:
@@ -58,9 +60,13 @@ namespace OpenKaiser {
 			this->window = sdl::create_window("OpenKaiser", this->width, this->height, 0);
 			this->renderer = sdl::create_renderer(this->window.get());
 
+			sdl::ttf_init();
+
 			std::cout << "Initializung UI...\n";
+			this->resourceManager.init(this->renderer);
+
 			sdl::FRect mapArea(0, 0, this->width, this->height);
-			this->mapRenderer.init(this->imageManager, this->renderer, mapArea);
+			this->mapRenderer.init(this->resourceManager, this->renderer, mapArea);
 			this->mapRenderer.set_render_mode(RenderMode::Image);
 		}
 

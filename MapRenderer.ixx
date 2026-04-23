@@ -20,6 +20,8 @@ namespace OpenKaiser {
 		sdl::FRect screenArea;
 		std::vector<std::tuple<uint8_t, uint8_t, uint8_t>> country_colors;
 		std::unordered_map<TileType, sdl::TexturePtr> tileTextures;
+		sdl::RendererPtr renderer;
+		sdl::TexturePtr text;
 
 		float tileSize = 16;
 		RenderMode mode = RenderMode::Rect;
@@ -50,7 +52,7 @@ namespace OpenKaiser {
 			}
 		}
 
-		void draw_tile_rect(sdl::RendererPtr& renderer, Tile& currentTile, int x, int y) {
+		void draw_tile_rect(Tile& currentTile, int x, int y) {
 			switch (currentTile.type) {
 			case TileType::Grass:
 				sdl::set_render_draw_color(renderer, 76, 153, 0, 255);
@@ -67,12 +69,12 @@ namespace OpenKaiser {
 			sdl::render_fill_rect(renderer, rect);
 		}
 
-		void draw_tile_image(sdl::RendererPtr& renderer, Tile& currentTile, int x, int y) {
+		void draw_tile_image(Tile& currentTile, int x, int y) {
 			sdl::FRect rect = { screenArea.x + x * this->tileSize, screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
 			sdl::render_texture(renderer, this->tileTextures[currentTile.type], rect);
 		}
 
-		void draw_borders(sdl::RendererPtr& renderer, WorldState& world, Tile& currentTile, int x, int y)
+		void draw_borders(WorldState& world, Tile& currentTile, int x, int y)
 		{
 			// Draw country borders
 			if (currentTile.countryId >= 0) {
@@ -98,8 +100,8 @@ namespace OpenKaiser {
 			}
 		}
 
-		void add_tile_texture(ImageManager& imageManager, sdl::RendererPtr& renderer, TileType type, const std::string& path) {
-			this->tileTextures.insert(std::pair<TileType, sdl::TexturePtr>(type, imageManager.get_image(renderer, path)));
+		void add_tile_texture(ResourceManager& imageManager, sdl::RendererPtr& renderer, TileType type, const std::string& path) {
+			this->tileTextures.insert(std::pair<TileType, sdl::TexturePtr>(type, imageManager.get_image(path)));
 		}
 
 	public:
@@ -127,15 +129,18 @@ namespace OpenKaiser {
 			return this->mode;
 		}
 
-		void init(ImageManager& imageManager, sdl::RendererPtr& renderer, sdl::FRect& screenArea) {
+		void init(ResourceManager& imageManager, sdl::RendererPtr& renderer, sdl::FRect& screenArea) {
+			this->renderer = renderer;
 			this->set_screen_area(screenArea);
 
-			this->add_tile_texture(imageManager, renderer, TileType::Grass, "data/graphics/tiles/grass.png");
-			this->add_tile_texture(imageManager, renderer, TileType::Water, "data/graphics/tiles/water.png");
-			this->add_tile_texture(imageManager, renderer, TileType::Mountain, "data/graphics/tiles/mountain.png");
+			this->add_tile_texture(imageManager,this->renderer, TileType::Grass, "data/graphics/tiles/grass.png");
+			this->add_tile_texture(imageManager, this->renderer, TileType::Water, "data/graphics/tiles/water.png");
+			this->add_tile_texture(imageManager, this->renderer, TileType::Mountain, "data/graphics/tiles/mountain.png");
+
+			this->text = imageManager.get_text("Hello world!", 25, 255, 255, 255);
 		}
 
-		void draw(sdl::RendererPtr& renderer, WorldState& world) {
+		void draw(WorldState& world) {
 			for (int x = 0; x < (this->screenArea.w / this->tileSize); x++) {
 				for (int y = 0; y < (this->screenArea.h / this->tileSize); y++) {
 					if (x >= world.tiles().width() || y >= world.tiles().height()) {
@@ -144,17 +149,18 @@ namespace OpenKaiser {
 
 					Tile& currentTile = world.tiles()(x, y);
 					if (this->mode == RenderMode::Rect) {
-						draw_tile_rect(renderer, currentTile, x, y);
+						draw_tile_rect(currentTile, x, y);
 					}
 					if (this->mode == RenderMode::Image) {
-						draw_tile_image(renderer, currentTile, x, y);
+						draw_tile_image(currentTile, x, y);
 					}
 
-					draw_borders(renderer, world, currentTile, x, y);
+					draw_borders(world, currentTile, x, y);
 				}
 			}
 
-			sdl::render_present(renderer);
+			sdl::FRect rect = { 0, 0, this->text->w, this->text->h };
+			sdl::render_texture(renderer, text, rect);
 		}
 	};
 

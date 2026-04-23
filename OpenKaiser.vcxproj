@@ -136,7 +136,7 @@
   <ItemGroup>
     <ClCompile Include="Game.ixx" />
     <ClCompile Include="General.ixx" />
-    <ClCompile Include="ImageManager.ixx" />
+    <ClCompile Include="ResourceManager.ixx" />
     <ClCompile Include="MapRenderer.ixx" />
     <ClCompile Include="WorldGenerator.ixx" />
     <ClCompile Include="OpenKaiser.cpp" />
