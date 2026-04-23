@@ -3,19 +3,28 @@ export module WorldState;
 import std;
 
 export namespace OpenKaiser {
-	export enum class TileType {
+	export enum class TileType : std::uint8_t {
 		Grass,
 		Mountain,
 		Water
 	};
 
+	export enum class BuildingType : std::uint8_t {
+		Village,
+		Castle,
+		Town,
+		Palace
+	};
+
 	export struct Tile {
 		TileType type;
-		int countryId = -1;
+		std::uint8_t countryId = -1;
+		BuildingType building;
+		std::uint32_t population;
 	};
 
 	export struct Country {
-		int id;
+		std::uint8_t id;
 		std::string name;
 	};
 
@@ -41,6 +50,7 @@ export namespace OpenKaiser {
 	private:
 		Array2D<Tile> _tiles;
 		int mapSeed;
+		std::vector<Country> countries_;
 
 	public:
 		WorldState(size_t width, size_t height) : _tiles(width, height) {
@@ -51,6 +61,10 @@ export namespace OpenKaiser {
 
 		Array2D<Tile>& tiles() {
 			return this->_tiles;
+		}
+
+		std::vector<Country>& countries() {
+			return this->countries_;
 		}
 
 		int getMapSeed() {

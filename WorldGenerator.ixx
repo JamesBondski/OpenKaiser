@@ -128,6 +128,19 @@ namespace OpenKaiser {
 
 			return coords;
 		}
+
+		void generate_countries(WorldState& state, int numCountries) {
+			std::ifstream country_names("data/config/country_names.txt");
+			std::string line;
+
+			int count = 0;
+			while (std::getline(country_names, line) && count < numCountries) {
+				Country newCountry;
+				newCountry.id = count;
+				newCountry.name = line;
+				state.countries().push_back(newCountry);
+			}
+		}
 	public:
 		WorldState generate(const WorldConfig& config) {
 			WorldState state = WorldState(config.width, config.height);
@@ -145,8 +158,9 @@ namespace OpenKaiser {
 			FloatMapGenerator mapGen;
 			mapGen.generate(state, gen);
 
+			this->generate_countries(state, config.numCountries);
+
 			// Place countries
-			
 			for (int i = 0; i < config.numCountries; i++) {
 				std::pair<int, int> coords = get_starting_location(state, gen);
 				

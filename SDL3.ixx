@@ -115,13 +115,13 @@ export namespace sdl {
     export TexturePtr load_texture(RendererPtr& renderer, std::string_view path) {
         SDL_Surface* surface = SDL_LoadPNG(path.data());
         if (!surface) {
-            throw sdl_error(std::format("Failed to load image from {}", path));
+            throw sdl_error("Failed to load image from " + std::string(path));
         }
 
         SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer.get(), surface);
         SDL_DestroySurface(surface);
         if (!texture) {
-            throw sdl_error(std::format("Failed to create texture from {}", path));
+            throw sdl_error("Failed to create texture from " + std::string(path));
         }
         return make_texture(texture);
     }
