@@ -136,7 +136,7 @@ namespace OpenKaiser {
 			int count = 0;
 			while (std::getline(country_names, line) && count < numCountries) {
 				Country newCountry;
-				newCountry.id = count;
+				newCountry.id = count++;
 				newCountry.name = line;
 				state.countries().push_back(newCountry);
 			}

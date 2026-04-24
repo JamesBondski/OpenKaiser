@@ -54,6 +54,7 @@ namespace OpenKaiser {
 		void init() {
 			std::cout << "Initializing World...\n";
 			this->world = WorldGenerator().generate(WorldConfig());
+			this->world.save("save/init.txt");
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();

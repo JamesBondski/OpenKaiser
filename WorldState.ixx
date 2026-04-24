@@ -49,6 +49,10 @@ export namespace OpenKaiser {
 
 		size_t width() { return span.extent(0); }
 		size_t height() { return span.extent(1); }
+
+		std::vector<T>& getTiles() {
+			return this->tiles;
+		}
 	};
 
 	export class WorldState {
@@ -78,6 +82,48 @@ export namespace OpenKaiser {
 
 		void setMapSeed(int value) {
 			this->mapSeed = value;
+		}
+
+		void save(const std::string& path) {
+			std::ofstream save_file(path);
+			save_file << this->mapSeed << std::endl;
+			save_file << this->countries_.size() << std::endl;
+			for (Country& country : this->countries_) {
+				save_file << country.id << " " << country.name << " " << country.capital.x << " " << country.capital.y << std::endl;
+			}
+			save_file << this->_tiles.width() << " " << this->_tiles.height() << std::endl;
+			for (Tile tile : this->_tiles.getTiles()) {
+				save_file << static_cast<int>(tile.type) << " " << static_cast<int>(tile.building) << " " << tile.countryId << " " << tile.population << std::endl;
+			}
+		}
+
+		void load(const std::string& path) {
+			std::ifstream save_file(path);
+			save_file >> this->mapSeed;
+			int numCountries;
+			save_file >> numCountries;
+
+			for (int i = 0; i < numCountries; i++) {
+				Country country;
+				int x, y;
+				save_file >> country.id >> country.name >> x >> y;
+				country.capital.x = x;
+				country.capital.y = y;
+				this->countries().push_back(country);
+			}
+
+			int width, height;
+			save_file >> width >> height;
+			this->_tiles = Array2D<Tile>(width, height);
+
+			for (int i = 0; i < width * height; i++) {
+				Tile tile;
+				int tileType, buildingType;
+				save_file >> tileType >> buildingType >> tile.countryId >> tile.population;
+				tile.type = static_cast<TileType>(tileType);
+				tile.building = static_cast<BuildingType>(buildingType);
+				this->_tiles.getTiles()[i] = tile;
+			}
 		}
 	};
 
