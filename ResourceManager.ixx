@@ -47,11 +47,7 @@ namespace OpenKaiser {
 		// Fonts
 		std::unordered_map<float, sdl::FontPtr> fonts;
 		std::unordered_map<TextConfig, sdl::TexturePtr, TextConfigHash> texts;
-
-		sdl::FontPtr& load_font(float size) {
-			auto [it, inserted] = fonts.insert(std::pair<float, sdl::FontPtr>(size, sdl::ttf_open_font("data/fonts/hitroad.ttf", size)));
-			return it->second;
-		}
+		
 	public:
 		void init(sdl::RendererPtr& renderer) {
 			this->renderer = renderer;
@@ -70,9 +66,8 @@ namespace OpenKaiser {
 		sdl::TexturePtr& get_text(const std::string& text, float size, std::uint8_t r, std::uint8_t g, std::uint8_t b ) {
 			auto font_it = fonts.find(size);
 			if (font_it == fonts.end()) {
-				this->load_font(size);
-				// I could not find an easy way for load_font to return the iterator, so this is necessary
-				font_it = fonts.find(size);
+				auto [it, inserted] = fonts.insert(std::pair<float, sdl::FontPtr>(size, sdl::ttf_open_font("data/fonts/OpenSans-Medium.ttf", size)));
+				font_it = it;
 			}
 
 			TextConfig config = { text, size, r, g, b };
