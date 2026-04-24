@@ -57,6 +57,12 @@ namespace OpenKaiser {
 
 			this->state()->update(diff);
 
+			std::string nextState = this->state()->get_next_state();
+			if (!nextState.empty()) {
+				this->state()->set_next_state("");
+				this->currentState = this->state()->get_next_state();
+			}
+
 			return true;
 		}
 

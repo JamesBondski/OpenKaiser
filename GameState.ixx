@@ -12,6 +12,8 @@ namespace OpenKaiser {
 	protected:
 		sdl::RendererPtr renderer;
 		std::shared_ptr<ResourceManager> resourceManager;
+
+		std::string nextState;
 	public:
 		virtual void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager> resources) {
 			this->renderer = renderer;
@@ -20,6 +22,14 @@ namespace OpenKaiser {
 		virtual void update(float passedTime) = 0;
 		virtual void draw(WorldState state) = 0;
 		virtual void handle_event(sdl::Event& event) = 0;
+
+		std::string& get_next_state() {
+			return nextState;
+		}
+
+		void set_next_state(const std::string& stateName) {
+			nextState = stateName;
+		}
 	};
 
 	export class MainState : public GameState {

@@ -24,7 +24,7 @@ namespace OpenKaiser {
 		sdl::RendererPtr renderer;
 		std::shared_ptr<ResourceManager> resourceManager;
 
-		float tileSize = 16;
+		float tileSize = 32;
 		RenderMode mode = RenderMode::Rect;
 
 		void load_country_colors() {
