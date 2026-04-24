@@ -1,4 +1,4 @@
-export module ImageManager;
+export module ResourceManager;
 
 import std;
 import SDL3;

@@ -12,5 +12,6 @@
     <ClCompile Include="General.ixx" />
     <ClCompile Include="ResourceManager.ixx" />
     <ClCompile Include="MapRenderer.ixx" />
+    <ClCompile Include="GameState.ixx" />
   </ItemGroup>
 </Project>

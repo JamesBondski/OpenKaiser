@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.ixx" />
+    <ClCompile Include="GameState.ixx" />
     <ClCompile Include="General.ixx" />
     <ClCompile Include="ResourceManager.ixx" />
     <ClCompile Include="MapRenderer.ixx" />

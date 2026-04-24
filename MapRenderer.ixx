@@ -4,7 +4,7 @@ import SDL3;
 import WorldState;
 import std;
 import General;
-import ImageManager;
+import ResourceManager;
 
 using std::uint8_t;
 

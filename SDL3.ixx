@@ -184,4 +184,18 @@ export namespace sdl {
         }
         return make_texture_ptr(texture);
     }
+
+    export std::uint64_t get_performance_counter() {
+        return SDL_GetPerformanceCounter();
+    }
+
+    export std::uint64_t get_performance_frequency() {
+        return SDL_GetPerformanceFrequency();
+    }
+
+    export void get_current_render_output_size(RendererPtr& renderer, int* w, int* h) {
+        if (!SDL_GetCurrentRenderOutputSize(renderer.get(), w, h)) {
+            throw sdl_error("Failed to get render output size.");
+        }
+    }
 }

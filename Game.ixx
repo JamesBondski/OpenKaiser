@@ -5,7 +5,8 @@ import WorldState;
 import WorldGenerator;
 import General;
 import MapRenderer;
-import ImageManager;
+import ResourceManager;
+import GameState;
 
 using std::uint8_t;
 
@@ -18,13 +19,27 @@ namespace OpenKaiser {
 
 		MapRenderer mapRenderer;
 		std::shared_ptr<ResourceManager> resourceManager;
+		std::unordered_map<std::string, std::unique_ptr<GameState>> states;
+		std::string currentState;
 
 		int width = 1280;
 		int height = 800;
 
 		WorldState world;
+		std::uint64_t lastUpdate = 0;
+
+		std::unique_ptr<GameState>& state() {
+			return states[this->currentState];
+		}
 
 		bool update() {
+			if (lastUpdate = 0) {
+				lastUpdate = sdl::get_performance_counter();
+			}
+			std::uint64_t now = sdl::get_performance_counter();
+			float diff = (lastUpdate - now) / (float)sdl::get_performance_frequency() * 1000;
+			lastUpdate = now;
+
 			sdl::Event event;
 			while (sdl::poll_event(event)) {
 				if (event.type == sdl::EventType::Quit) {
@@ -37,7 +52,11 @@ namespace OpenKaiser {
 						this->world = WorldGenerator().generate(WorldConfig());
 					}
 				}
+				this->state()->handle_event(event);
 			}
+
+			this->state()->update(diff);
+
 			return true;
 		}
 
@@ -45,9 +64,17 @@ namespace OpenKaiser {
 			sdl::set_render_draw_color(this->renderer, { 11, 11, 11, 255 });
 			sdl::render_clear(this->renderer);
 
-			this->mapRenderer.draw(this->world);
+			this->state()->draw(this->world);
 
 			sdl::render_present(renderer);
+		}
+
+		template <typename T> 
+			requires std::derived_from<T, GameState> && std::is_default_constructible_v<T>
+		void add_gamestate(const std::string& name) {
+			T* newState = new T();
+			this->states.insert(std::pair<std::string, std::unique_ptr<GameState>>(name, std::unique_ptr<GameState>(newState)));
+			newState->init(this->renderer, this->resourceManager);
 		}
 
 	public:
@@ -67,9 +94,9 @@ namespace OpenKaiser {
 			this->resourceManager.reset(new ResourceManager());
 			this->resourceManager->init(this->renderer);
 
-			sdl::FRect mapArea(0, 0, this->width, this->height);
-			this->mapRenderer.init(this->resourceManager, this->renderer, mapArea);
-			this->mapRenderer.set_render_mode(RenderMode::Image);
+			// Initialize GameStates
+			this->add_gamestate<MainState>("main");
+			this->currentState = "main";
 		}
 
 		void run() {
