@@ -52,7 +52,7 @@ namespace OpenKaiser {
 						this->world = WorldGenerator().generate(WorldConfig());
 					}
 				}
-				this->state()->handle_event(event);
+				this->state()->handle_event(this->world, event);
 			}
 
 			this->state()->update(diff);

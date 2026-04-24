@@ -20,8 +20,8 @@ namespace OpenKaiser {
 			this->resourceManager = resources;
 		}
 		virtual void update(float passedTime) = 0;
-		virtual void draw(WorldState state) = 0;
-		virtual void handle_event(sdl::Event& event) = 0;
+		virtual void draw(WorldState& state) = 0;
+		virtual void handle_event(WorldState& state, sdl::Event& event) = 0;
 
 		std::string& get_next_state() {
 			return nextState;
@@ -52,12 +52,18 @@ namespace OpenKaiser {
 
 		}
 
-		void draw(WorldState state) override {
+		void draw(WorldState& state) override {
 			this->mapRenderer.draw(state);
 		}
 
-		void handle_event(sdl::Event& event) override {
-
+		void handle_event(WorldState& state, sdl::Event& event) override {
+			if (event.type == sdl::EventType::KeyDown) {
+				if (event.key.key == 112) {
+					std::cout << "Saving map.." << std::endl;
+					sdl::SurfacePtr mapSurface = this->mapRenderer.render_to_surface(state);
+					sdl::save_png(mapSurface, "map.png");
+				}
+			}
 		}
 	};
 }

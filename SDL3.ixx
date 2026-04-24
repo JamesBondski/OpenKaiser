@@ -29,16 +29,25 @@ export namespace sdl {
         }
     };
 
+    struct SurfaceDeleter {
+        void operator()(SDL_Surface* surface) const {
+            SDL_DestroySurface(surface);
+        }
+    };
+
     export using WindowPtr = std::unique_ptr<SDL_Window, WindowDeleter>;
     export using RendererPtr = std::shared_ptr<SDL_Renderer>;
     export using TexturePtr = std::shared_ptr<SDL_Texture>;
+    export using SurfacePtr = std::shared_ptr < SDL_Surface>;
 
     export using WindowFlags = SDL_WindowFlags;
     export using Event = SDL_Event;
+    export using Rect = SDL_Rect;
     export using FRect = SDL_FRect;
     export using Color = SDL_Color;
     export using Point = SDL_Point;
     export using FPoint = SDL_FPoint;
+    export using PixelFormat = SDL_PixelFormat;
     
     export namespace EventType {
         export constexpr Uint32 Quit = SDL_EVENT_QUIT;
@@ -196,6 +205,38 @@ export namespace sdl {
     export void get_current_render_output_size(RendererPtr& renderer, int* w, int* h) {
         if (!SDL_GetCurrentRenderOutputSize(renderer.get(), w, h)) {
             throw sdl_error("Failed to get render output size.");
+        }
+    }
+
+    inline SurfacePtr make_surface_ptr(SDL_Surface* surface) {
+        return SurfacePtr(surface, SurfaceDeleter{});
+    }
+
+    export SurfacePtr load_surface(std::string_view path) {
+        SDL_Surface* surface = SDL_LoadPNG(path.data());
+        if (!surface) {
+            throw sdl_error("Failed to load image from " + std::string(path));
+        }
+        return make_surface_ptr(surface);
+    }
+
+    export void blit_surface(SurfacePtr& src, Rect* srcrect, SurfacePtr& dst, Rect* dstrect) {
+        if (!SDL_BlitSurface(src.get(), srcrect, dst.get(), dstrect)) {
+            throw sdl_error("Error blitting surface.");
+        }
+    }
+
+    export SurfacePtr create_surface(int width, int height, PixelFormat format) {
+        SDL_Surface* surface = SDL_CreateSurface(width, height, format);
+        if (!surface) {
+            throw sdl_error("Error creating surface.");
+        }
+        return make_surface_ptr(surface);
+    }
+
+    export void save_png(SurfacePtr& surface, const std::string& file) {
+        if (!SDL_SavePNG(surface.get(), file.data())) {
+            throw sdl_error("Error saving image to " + file);
         }
     }
 }

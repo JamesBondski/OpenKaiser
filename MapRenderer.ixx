@@ -186,6 +186,26 @@ namespace OpenKaiser {
 				sdl::render_texture_centered(this->renderer, texture, targetPosition);
 			}
 		}
+
+		sdl::SurfacePtr render_to_surface(WorldState& state) {
+			auto tiles = state.tiles();
+			float saveTileSize = 64;
+			sdl::SurfacePtr targetSurface = sdl::create_surface(tiles.width() * saveTileSize, tiles.height() * saveTileSize, sdl::PixelFormat::SDL_PIXELFORMAT_RGB24);
+			
+			std::unordered_map<TileType, sdl::SurfacePtr> tileSurfaces;
+			tileSurfaces[TileType::Grass] = sdl::load_surface("data/graphics/tiles/grass.png");
+			tileSurfaces[TileType::Mountain] = sdl::load_surface("data/graphics/tiles/mountain.png");
+			tileSurfaces[TileType::Water] = sdl::load_surface("data/graphics/tiles/water.png");
+
+			for (int x = 0; x < tiles.width(); x++) {
+				for (int y = 0; y < tiles.height(); y++) {
+					Tile& currentTile = tiles(x, y);
+					sdl::Rect dstrect{ x * saveTileSize, y * saveTileSize, saveTileSize, saveTileSize };
+					sdl::blit_surface(tileSurfaces[currentTile.type], nullptr, targetSurface, &dstrect);
+				}
+			}
+			return targetSurface;
+		}
 	};
 
 }
