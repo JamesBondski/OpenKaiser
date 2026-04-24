@@ -107,6 +107,7 @@ namespace OpenKaiser {
 				}
 			}
 			catch (const sdl::sdl_error& e) {
+				this->world.save("save/crash.txt");
 				throw;
 			}
 		}
