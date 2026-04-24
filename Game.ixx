@@ -42,7 +42,7 @@ namespace OpenKaiser {
 		}
 
 		void draw() {
-			sdl::set_render_draw_color(this->renderer, 11, 11, 11, 255);
+			sdl::set_render_draw_color(this->renderer, { 11, 11, 11, 255 });
 			sdl::render_clear(this->renderer);
 
 			this->mapRenderer.draw(this->world);

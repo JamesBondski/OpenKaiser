@@ -18,7 +18,7 @@ namespace OpenKaiser {
 	export class MapRenderer {
 	private:
 		sdl::FRect screenArea;
-		std::vector<std::tuple<uint8_t, uint8_t, uint8_t>> country_colors;
+		std::vector<sdl::Color> country_colors;
 		std::unordered_map<TileType, sdl::TexturePtr> tileTextures;
 		sdl::RendererPtr renderer;
 		sdl::TexturePtr text;
@@ -47,7 +47,8 @@ namespace OpenKaiser {
 				country_colors.push_back({
 					static_cast<uint8_t>(r),
 					static_cast<uint8_t>(g),
-					static_cast<uint8_t>(b)
+					static_cast<uint8_t>(b),
+					255
 					});
 			}
 		}
@@ -55,13 +56,13 @@ namespace OpenKaiser {
 		void draw_tile_rect(Tile& currentTile, int x, int y) {
 			switch (currentTile.type) {
 			case TileType::Grass:
-				sdl::set_render_draw_color(renderer, 76, 153, 0, 255);
+				sdl::set_render_draw_color(renderer, { 76, 153, 0, 255 });
 				break;
 			case TileType::Water:
-				sdl::set_render_draw_color(renderer, 41, 128, 185, 255);
+				sdl::set_render_draw_color(renderer, { 41, 128, 185, 255 });
 				break;
 			case TileType::Mountain:
-				sdl::set_render_draw_color(renderer, 127, 140, 141, 255);
+				sdl::set_render_draw_color(renderer, { 127, 140, 141, 255 });
 				break;
 			}
 
@@ -79,8 +80,7 @@ namespace OpenKaiser {
 			// Draw country borders
 			if (currentTile.countryId >= 0) {
 				auto cc = this->country_colors[currentTile.countryId];
-				uint8_t r = std::get<0>(cc);
-				sdl::set_render_draw_color(renderer, std::get<0>(cc), std::get<1>(cc), std::get<2>(cc), 255);
+				sdl::set_render_draw_color(renderer, cc);
 				// Left
 				if (x > 0 && currentTile.countryId != world.tiles()(x - 1, y).countryId) {
 					sdl::render_line(renderer, x * this->tileSize, y * this->tileSize, x * this->tileSize, (y + 1) * this->tileSize);

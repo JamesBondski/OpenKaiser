@@ -97,8 +97,8 @@ export namespace sdl {
         }
     }
 
-    export void set_render_draw_color(RendererPtr& renderer, Uint8 r, Uint8 g, Uint8 b, Uint8 alpha) {
-        if(!SDL_SetRenderDrawColor(renderer.get(), r, g, b, alpha)) {
+    export void set_render_draw_color(RendererPtr& renderer, Color color) {
+        if(!SDL_SetRenderDrawColor(renderer.get(), color.r, color.g, color.b, color.a)) {
             throw sdl_error("Failed to set render draw color");
         }
 	}
