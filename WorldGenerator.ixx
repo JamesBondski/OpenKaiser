@@ -170,6 +170,9 @@ namespace OpenKaiser {
 				state.tiles()(coords.first, coords.second - 1).countryId = i;
 				state.tiles()(coords.first + 1, coords.second).countryId = i;
 				state.tiles()(coords.first, coords.second + 1).countryId = i;
+
+				// Set capital
+				state.countries()[i].capital = { coords.first, coords.second };
 			}
 			return state;
 		}

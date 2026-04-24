@@ -17,7 +17,7 @@ namespace OpenKaiser {
 		sdl::RendererPtr renderer;
 
 		MapRenderer mapRenderer;
-		ResourceManager resourceManager;
+		std::shared_ptr<ResourceManager> resourceManager;
 
 		int width = 1280;
 		int height = 800;
@@ -63,7 +63,8 @@ namespace OpenKaiser {
 			sdl::ttf_init();
 
 			std::cout << "Initializung UI...\n";
-			this->resourceManager.init(this->renderer);
+			this->resourceManager.reset(new ResourceManager());
+			this->resourceManager->init(this->renderer);
 
 			sdl::FRect mapArea(0, 0, this->width, this->height);
 			this->mapRenderer.init(this->resourceManager, this->renderer, mapArea);

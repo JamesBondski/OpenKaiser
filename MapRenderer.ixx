@@ -21,7 +21,7 @@ namespace OpenKaiser {
 		std::vector<sdl::Color> country_colors;
 		std::unordered_map<TileType, sdl::TexturePtr> tileTextures;
 		sdl::RendererPtr renderer;
-		sdl::TexturePtr text;
+		std::shared_ptr<ResourceManager> resourceManager;
 
 		float tileSize = 16;
 		RenderMode mode = RenderMode::Rect;
@@ -100,8 +100,8 @@ namespace OpenKaiser {
 			}
 		}
 
-		void add_tile_texture(ResourceManager& imageManager, sdl::RendererPtr& renderer, TileType type, const std::string& path) {
-			this->tileTextures.insert(std::pair<TileType, sdl::TexturePtr>(type, imageManager.get_image(path)));
+		void add_tile_texture(TileType type, const std::string& path) {
+			this->tileTextures.insert(std::pair<TileType, sdl::TexturePtr>(type, this->resourceManager->get_image(path)));
 		}
 
 	public:
@@ -129,15 +129,15 @@ namespace OpenKaiser {
 			return this->mode;
 		}
 
-		void init(ResourceManager& imageManager, sdl::RendererPtr& renderer, sdl::FRect& screenArea) {
+		void init(std::shared_ptr<ResourceManager>& resourceManager, sdl::RendererPtr& renderer, sdl::FRect& screenArea) {
 			this->renderer = renderer;
+			this->resourceManager = resourceManager;
+
 			this->set_screen_area(screenArea);
 
-			this->add_tile_texture(imageManager,this->renderer, TileType::Grass, "data/graphics/tiles/grass.png");
-			this->add_tile_texture(imageManager, this->renderer, TileType::Water, "data/graphics/tiles/water.png");
-			this->add_tile_texture(imageManager, this->renderer, TileType::Mountain, "data/graphics/tiles/mountain.png");
-
-			this->text = imageManager.get_text("Hello world!", 25, 255, 255, 255);
+			this->add_tile_texture(TileType::Grass, "data/graphics/tiles/grass.png");
+			this->add_tile_texture(TileType::Water, "data/graphics/tiles/water.png");
+			this->add_tile_texture(TileType::Mountain, "data/graphics/tiles/mountain.png");
 		}
 
 		void draw(WorldState& world) {
@@ -159,8 +159,16 @@ namespace OpenKaiser {
 				}
 			}
 
-			sdl::FRect rect = { 0, 0, this->text->w, this->text->h };
-			sdl::render_texture(renderer, text, rect);
+			// Render country names
+			for (auto country : world.countries()) {
+				sdl::FPoint targetPosition = { 
+					this->screenArea.x + country.capital.x * this->tileSize + this->tileSize / 2, 
+					this->screenArea.y + country.capital.y * this->tileSize + this->tileSize / 2 
+				};
+
+				auto texture = this->resourceManager->get_text(country.name, 14, 255, 255, 255);
+				sdl::render_texture_centered(this->renderer, texture, targetPosition);
+			}
 		}
 	};
 

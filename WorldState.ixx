@@ -1,6 +1,7 @@
 export module WorldState;
 
 import std;
+import SDL3;
 
 export namespace OpenKaiser {
 	export enum class TileType : std::uint8_t {
@@ -26,6 +27,7 @@ export namespace OpenKaiser {
 	export struct Country {
 		std::int16_t id;
 		std::string name;
+		sdl::Point capital;
 	};
 
 	export template<typename T> class Array2D {

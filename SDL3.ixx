@@ -37,6 +37,8 @@ export namespace sdl {
     export using Event = SDL_Event;
     export using FRect = SDL_FRect;
     export using Color = SDL_Color;
+    export using Point = SDL_Point;
+    export using FPoint = SDL_FPoint;
     
     export namespace EventType {
         export constexpr Uint32 Quit = SDL_EVENT_QUIT;
@@ -137,6 +139,12 @@ export namespace sdl {
         if (!SDL_RenderTexture(renderer.get(), texture.get(), NULL, &rect)) {
             throw sdl_error("Error rendering texture.");
         }
+    }
+
+    export void render_texture_centered(RendererPtr& renderer, TexturePtr& texture, const FPoint& target) {
+        FRect target_rect{ target.x - texture->w / 2, target.y - texture->h / 2, texture->w, texture->h };
+        render_texture(renderer, texture, target_rect);
+
     }
 
     // SDL3_ttf
