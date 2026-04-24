@@ -11,17 +11,20 @@ export namespace OpenKaiser {
 	};
 
 	export enum class BuildingType : std::uint8_t {
+		None,
 		Village,
 		Castle,
 		Town,
-		Palace
+		Palace,
+		Field,
+		Pasture
 	};
 
 	export struct Tile {
-		TileType type;
+		TileType type=TileType::Grass;
 		std::int16_t countryId = -1;
-		BuildingType building;
-		std::uint32_t population;
+		BuildingType building = BuildingType::None;
+		std::uint32_t population=0;
 	};
 
 	export struct Country {

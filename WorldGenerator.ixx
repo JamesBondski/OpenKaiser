@@ -141,6 +141,16 @@ namespace OpenKaiser {
 				state.countries().push_back(newCountry);
 			}
 		}
+
+		void init_tile(Tile& tile, int countryId) {
+			tile.countryId = countryId;
+			if (tile.type == TileType::Grass) {
+				tile.building = BuildingType::Field;
+			} else if (tile.type == TileType::Mountain) {
+				tile.building = BuildingType::Pasture;
+			}
+		}
+
 	public:
 		WorldState generate(const WorldConfig& config) {
 			WorldState state = WorldState(config.width, config.height);
@@ -165,11 +175,18 @@ namespace OpenKaiser {
 				std::pair<int, int> coords = get_starting_location(state, gen);
 				
 				// Assign initial tiles
-				state.tiles()(coords.first, coords.second).countryId = i;
-				state.tiles()(coords.first - 1, coords.second).countryId = i;
-				state.tiles()(coords.first, coords.second - 1).countryId = i;
-				state.tiles()(coords.first + 1, coords.second).countryId = i;
-				state.tiles()(coords.first, coords.second + 1).countryId = i;
+				Tile& centerTile = state.tiles()(coords.first, coords.second);
+				centerTile.countryId = i;
+				centerTile.building = BuildingType::Castle;
+
+				Tile& leftTile = state.tiles()(coords.first - 1, coords.second);
+				leftTile.countryId = i;
+				leftTile.building = BuildingType::Village;
+				leftTile.population = 100;
+
+				this->init_tile(state.tiles()(coords.first, coords.second - 1), i);
+				this->init_tile(state.tiles()(coords.first + 1, coords.second), i);
+				this->init_tile(state.tiles()(coords.first, coords.second + 1), i);
 
 				// Set capital
 				state.countries()[i].capital = { coords.first, coords.second };

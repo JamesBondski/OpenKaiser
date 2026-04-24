@@ -20,10 +20,11 @@ namespace OpenKaiser {
 		sdl::FRect screenArea;
 		std::vector<sdl::Color> country_colors;
 		std::unordered_map<TileType, sdl::TexturePtr> tileTextures;
+		std::unordered_map<BuildingType, sdl::TexturePtr> buildingTextures;
 		sdl::RendererPtr renderer;
 		std::shared_ptr<ResourceManager> resourceManager;
 
-		float tileSize = 16;
+		float tileSize = 32;
 		RenderMode mode = RenderMode::Rect;
 
 		void load_country_colors() {
@@ -70,9 +71,9 @@ namespace OpenKaiser {
 			sdl::render_fill_rect(renderer, rect);
 		}
 
-		void draw_tile_image(Tile& currentTile, int x, int y) {
+		void draw_tile_image(sdl::TexturePtr& texture, int x, int y) {
 			sdl::FRect rect = { screenArea.x + x * this->tileSize, screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
-			sdl::render_texture(renderer, this->tileTextures[currentTile.type], rect);
+			sdl::render_texture(renderer, texture, rect);
 		}
 
 		void draw_borders(WorldState& world, Tile& currentTile, int x, int y)
@@ -102,6 +103,10 @@ namespace OpenKaiser {
 
 		void add_tile_texture(TileType type, const std::string& path) {
 			this->tileTextures.insert(std::pair<TileType, sdl::TexturePtr>(type, this->resourceManager->get_image(path)));
+		}
+
+		void add_building_texture(BuildingType type, const std::string& path) {
+			this->buildingTextures.insert(std::pair<BuildingType, sdl::TexturePtr>(type, this->resourceManager->get_image(path)));
 		}
 
 	public:
@@ -138,6 +143,12 @@ namespace OpenKaiser {
 			this->add_tile_texture(TileType::Grass, "data/graphics/tiles/grass.png");
 			this->add_tile_texture(TileType::Water, "data/graphics/tiles/water.png");
 			this->add_tile_texture(TileType::Mountain, "data/graphics/tiles/mountain.png");
+
+			this->add_building_texture(BuildingType::Castle, "data/graphics/tiles/castle.png");
+			this->add_building_texture(BuildingType::Village, "data/graphics/tiles/village.png");
+			this->add_building_texture(BuildingType::Field, "data/graphics/tiles/field.png");
+			this->add_building_texture(BuildingType::Pasture, "data/graphics/tiles/pasture.png");
+			this->add_building_texture(BuildingType::Palace, "data/graphics/tiles/palace.png");
 		}
 
 		void draw(WorldState& world) {
@@ -152,7 +163,12 @@ namespace OpenKaiser {
 						draw_tile_rect(currentTile, x, y);
 					}
 					if (this->mode == RenderMode::Image) {
-						draw_tile_image(currentTile, x, y);
+						if (currentTile.building != BuildingType::None) {
+							draw_tile_image(this->buildingTextures[currentTile.building], x, y);
+						}
+						else {
+							draw_tile_image(this->tileTextures[currentTile.type], x, y);
+						}
 					}
 
 					draw_borders(world, currentTile, x, y);
