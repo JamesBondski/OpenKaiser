@@ -15,14 +15,11 @@ namespace OpenKaiser {
 		Image
 	};
 
-	export class MapRenderer {
+	export class MapRenderer : public UIElement {
 	private:
-		sdl::FRect screenArea;
 		std::vector<sdl::Color> country_colors;
 		std::unordered_map<TileType, sdl::TexturePtr> tileTextures;
 		std::unordered_map<BuildingType, sdl::TexturePtr> buildingTextures;
-		sdl::RendererPtr renderer;
-		std::shared_ptr<ResourceManager> resourceManager;
 
 		float tileSize = 32;
 		RenderMode mode = RenderMode::Rect;
@@ -114,10 +111,6 @@ namespace OpenKaiser {
 			this->load_country_colors();
 		}
 
-		void set_screen_area(sdl::FRect& screenArea) {
-			this->screenArea = screenArea;
-		}
-
 		void set_tile_size(float tileSize) {
 			this->tileSize = tileSize;
 		}
@@ -135,8 +128,7 @@ namespace OpenKaiser {
 		}
 
 		void init(std::shared_ptr<ResourceManager>& resourceManager, sdl::RendererPtr& renderer, sdl::FRect& screenArea) {
-			this->renderer = renderer;
-			this->resourceManager = resourceManager;
+			UIElement::init(renderer, resourceManager);
 
 			this->set_screen_area(screenArea);
 

@@ -48,6 +48,7 @@ export namespace sdl {
     export using Point = SDL_Point;
     export using FPoint = SDL_FPoint;
     export using PixelFormat = SDL_PixelFormat;
+    export using Keycode = SDL_Keycode;
     
     export namespace EventType {
         export constexpr Uint32 Quit = SDL_EVENT_QUIT;

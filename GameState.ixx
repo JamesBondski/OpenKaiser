@@ -5,23 +5,15 @@ import SDL3;
 import WorldState;
 import ResourceManager;
 import MapRenderer;
+import Menu;
+import General;
 
 namespace OpenKaiser {
 
-	export class GameState {
+	export class GameState : public UIElement {
 	protected:
-		sdl::RendererPtr renderer;
-		std::shared_ptr<ResourceManager> resourceManager;
-
 		std::string nextState;
 	public:
-		virtual void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager> resources) {
-			this->renderer = renderer;
-			this->resourceManager = resources;
-		}
-		virtual void update(float passedTime) = 0;
-		virtual void draw(WorldState& state) = 0;
-		virtual void handle_event(WorldState& state, sdl::Event& event) = 0;
 
 		std::string& get_next_state() {
 			return nextState;
@@ -34,36 +26,51 @@ namespace OpenKaiser {
 
 	export class MainState : public GameState {
 	private:
-		MapRenderer mapRenderer;
+		std::shared_ptr<MapRenderer> mapRenderer;
 		int width;
 		int height;
+		std::shared_ptr<MenuManager> menu;
 
 	public:
-		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager> resources)  override {
-			GameState::init(renderer, resources);
+		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources)  override {
+			UIElement::init(renderer, resources);
 			sdl::get_current_render_output_size(renderer, &this->width, &this->height);
 
-			sdl::FRect mapArea(0, 0, this->width, this->height);
-			this->mapRenderer.init(this->resourceManager, this->renderer, mapArea);
-			this->mapRenderer.set_render_mode(RenderMode::Image);
-		}
+			this->mapRenderer = std::make_shared<MapRenderer>();
+			sdl::FRect mapArea(0, 0, this->width, this->height - 200);
+			this->mapRenderer->init(this->resourceManager, this->renderer, mapArea);
+			this->mapRenderer->set_render_mode(RenderMode::Image);
+			this->children.push_back(this->mapRenderer);
 
-		void update(float passedTime) override {
+			this->menu = std::make_shared<MenuManager>();
+			this->menu->init(renderer, resources);
+			sdl::FRect menuArea{ 0, this->height - 200, this->width, 200 };
+			this->menu->set_screen_area(menuArea);
+			this->children.push_back(this->menu);
 
-		}
-
-		void draw(WorldState& state) override {
-			this->mapRenderer.draw(state);
+			auto rootItem = this->menu->getRootItem();
+			std::shared_ptr<MenuItem> quit = std::make_shared<MenuItem>();
+			quit->name = "quit";
+			quit->text = "(Q)uit";
+			quit->hotkey = 0x00000070u; // Q
+			quit->callback = [this](const std::string itemName) { return this->handle_quit(itemName); };
+			this->menu->add_item(rootItem, quit);
 		}
 
 		void handle_event(WorldState& state, sdl::Event& event) override {
 			if (event.type == sdl::EventType::KeyDown) {
 				if (event.key.key == 112) {
 					std::cout << "Saving map.." << std::endl;
-					sdl::SurfacePtr mapSurface = this->mapRenderer.render_to_surface(state);
+					sdl::SurfacePtr mapSurface = this->mapRenderer->render_to_surface(state);
 					sdl::save_png(mapSurface, "map.png");
 				}
 			}
+			GameState::handle_event(state, event);
+		}
+
+		ResultAction handle_quit(const std::string itemName) {
+			this->set_next_state("quit");
+			return ResultAction::None;
 		}
 	};
 }
