@@ -53,7 +53,9 @@ namespace OpenKaiser {
 					return item;
 				}
 				
-				searchList.push_range(item->childItems);
+				for (auto& childItem : item->childItems) {
+					searchList.push(childItem);
+				}
 			}
 			return nullptr;
 		}

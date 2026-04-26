@@ -36,19 +36,20 @@ export namespace OpenKaiser {
 	export template<typename T> class Array2D {
 	private:
 		std::vector<T> tiles;
-		std::mdspan<T, std::dextents<size_t, 2>> span;
+		size_t width_;
+		size_t height_;
 	public:
-		Array2D(size_t width, size_t height) : tiles(width * height), span(tiles.data(), width, height) {
+		Array2D(size_t width, size_t height) : tiles(width * height), width_(width), height_(height) {
 		}
 
-		Array2D() {
+		Array2D() : width_(0), height_(0) {
 		}
 
-		T& operator()(size_t x, size_t y) { return span[std::array{ x,y }]; }
-		const T& operator()(size_t x, size_t y) const { return span[std::array{ x,y }]; }
+		T& operator()(size_t x, size_t y) { return tiles[x * height_ + y]; }
+		const T& operator()(size_t x, size_t y) const { return tiles[x * height_ + y]; }
 
-		size_t width() { return span.extent(0); }
-		size_t height() { return span.extent(1); }
+		size_t width() { return width_; }
+		size_t height() { return height_; }
 
 		std::vector<T>& getTiles() {
 			return this->tiles;

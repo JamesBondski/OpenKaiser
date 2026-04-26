@@ -20,7 +20,7 @@ namespace OpenKaiser {
 	public:
 		void generate(std::shared_ptr<WorldState>& state, std::mt19937& gen) override {
 			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-			auto tiles = state->tiles();
+			Array2D<Tile>& tiles = state->tiles();
 
 			// Fill initial height map with random values
 			Array2D<float> heightMap(tiles.width(), tiles.height());
