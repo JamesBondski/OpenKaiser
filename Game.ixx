@@ -25,7 +25,7 @@ namespace OpenKaiser {
 		int width = 1280;
 		int height = 800;
 
-		WorldState world;
+		std::shared_ptr<WorldState> world;
 		std::uint64_t lastUpdate = 0;
 
 		std::unique_ptr<GameState>& state() {
@@ -52,7 +52,7 @@ namespace OpenKaiser {
 						this->world = WorldGenerator().generate(WorldConfig());
 					}
 				}
-				this->state()->handle_event(this->world, event);
+				this->state()->handle_event(event);
 			}
 
 			this->state()->update(diff);
@@ -74,7 +74,7 @@ namespace OpenKaiser {
 			sdl::set_render_draw_color(this->renderer, { 11, 11, 11, 255 });
 			sdl::render_clear(this->renderer);
 
-			this->state()->draw(this->world);
+			this->state()->draw();
 
 			sdl::render_present(renderer);
 		}
@@ -84,14 +84,14 @@ namespace OpenKaiser {
 		void add_gamestate(const std::string& name) {
 			T* newState = new T();
 			this->states.insert(std::pair<std::string, std::unique_ptr<GameState>>(name, std::unique_ptr<GameState>(newState)));
-			newState->init(this->renderer, this->resourceManager);
+			newState->init(this->renderer, this->resourceManager, this->world);
 		}
 
 	public:
 		void init() {
 			std::cout << "Initializing World...\n";
 			this->world = WorldGenerator().generate(WorldConfig());
-			this->world.save("save/init.txt");
+			this->world->save("save/init.txt");
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();
@@ -117,7 +117,7 @@ namespace OpenKaiser {
 				}
 			}
 			catch (const sdl::sdl_error& e) {
-				this->world.save("save/crash.txt");
+				this->world->save("save/crash.txt");
 				throw;
 			}
 		}

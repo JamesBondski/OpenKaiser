@@ -240,4 +240,10 @@ export namespace sdl {
             throw sdl_error("Error saving image to " + file);
         }
     }
+
+    export void set_render_clip_rect(RendererPtr& renderer, Rect* rect) {
+        if (!SDL_SetRenderClipRect(renderer.get(), rect)) {
+            throw sdl_error("Error setting clip rect.");
+        }
+    }
 }

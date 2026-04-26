@@ -19,6 +19,7 @@ namespace OpenKaiser {
 		sdl::RendererPtr renderer;
 		std::shared_ptr<ResourceManager> resourceManager;
 		std::vector<std::shared_ptr<UIElement>> children;
+		std::shared_ptr<WorldState> state;
 		std::string id;
 
 	public:
@@ -30,6 +31,13 @@ namespace OpenKaiser {
 			return this->screenArea;
 		}
 
+		void set_world_state(std::shared_ptr<WorldState>& state) {
+			this->state = state;
+			for (auto element : children) {
+				element->set_world_state(state);
+			}
+		}
+
 		void set_id(const std::string& id) {
 			this->id = id;
 		}
@@ -38,9 +46,10 @@ namespace OpenKaiser {
 			return this->id;
 		}
 
-		virtual void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources) {
+		virtual void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state) {
 			this->renderer = renderer;
 			this->resourceManager = resources;
+			this->state = state;
 		}
 
 		virtual void update(float passedTime) {
@@ -49,14 +58,17 @@ namespace OpenKaiser {
 			}
 		}
 
-		virtual void draw(WorldState& state) {
+		virtual void draw() {
 			for (auto element : children) {
-				element->draw(state);
+				sdl::Rect clipRect{ this->screenArea.x + element->get_screen_area().x, this->screenArea.y + element->get_screen_area().y, element->get_screen_area().w, element->get_screen_area().h };
+				sdl::set_render_clip_rect(this->renderer, &clipRect);
+				element->draw();
+				sdl::set_render_clip_rect(this->renderer, nullptr);
 			}
 		}
-		virtual void handle_event(WorldState& state, sdl::Event& event) {
+		virtual void handle_event(sdl::Event& event) {
 			for (auto element : children) {
-				element->handle_event(state, event);
+				element->handle_event(event);
 			}
 		};
 	};

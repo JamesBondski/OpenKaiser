@@ -26,11 +26,11 @@ namespace OpenKaiser {
 		std::shared_ptr<MenuItem> rootItem;
 		std::shared_ptr<MenuItem> currentItem;
 
-		float padding = 20;
+		float padding = 15;
 		float itemWidth = 0;
 		float itemHeight = 0;
 
-		int numColumns = 2;
+		int numColumns = 3;
 		int numRows = 4;
 
 		sdl::Color buttonColor = { 45, 52, 64, 255 };
@@ -75,7 +75,7 @@ namespace OpenKaiser {
 			child->parent = parent.get();
 		}
 
-		void draw(WorldState& state) override {
+		void draw() override {
 			sdl::set_render_draw_color(this->renderer, this->buttonColor);
 
 			int itemCount = 0;
@@ -99,7 +99,7 @@ namespace OpenKaiser {
 				}
 			}
 		}
-		void handle_event(WorldState& state, sdl::Event& event) override {
+		void handle_event(sdl::Event& event) override {
 			if (event.type == sdl::EventType::KeyDown) {
 				for (auto child : this->currentItem->childItems) {
 					if (event.key.key = child->hotkey) {

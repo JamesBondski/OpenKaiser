@@ -73,26 +73,26 @@ namespace OpenKaiser {
 			sdl::render_texture(renderer, texture, rect);
 		}
 
-		void draw_borders(WorldState& world, Tile& currentTile, int x, int y)
+		void draw_borders(Tile& currentTile, int x, int y)
 		{
 			// Draw country borders
 			if (currentTile.countryId >= 0) {
 				auto cc = this->country_colors[currentTile.countryId];
 				sdl::set_render_draw_color(renderer, cc);
 				// Left
-				if (x > 0 && currentTile.countryId != world.tiles()(x - 1, y).countryId) {
+				if (x > 0 && currentTile.countryId != this->state->tiles()(x - 1, y).countryId) {
 					sdl::render_line(renderer, x * this->tileSize, y * this->tileSize, x * this->tileSize, (y + 1) * this->tileSize);
 				}
 				// Top
-				if (y > 0 && currentTile.countryId != world.tiles()(x, y - 1).countryId) {
+				if (y > 0 && currentTile.countryId != this->state->tiles()(x, y - 1).countryId) {
 					sdl::render_line(renderer, x * this->tileSize, y * this->tileSize, (x + 1) * this->tileSize, y * this->tileSize);
 				}
 				// Right
-				if (x < world.tiles().width() - 1 && currentTile.countryId != world.tiles()(x + 1, y).countryId) {
+				if (x < this->state->tiles().width() - 1 && currentTile.countryId != this->state->tiles()(x + 1, y).countryId) {
 					sdl::render_line(renderer, (x + 1) * this->tileSize - 1, y * this->tileSize, (x + 1) * this->tileSize - 1, (y + 1) * this->tileSize);
 				}
 				// Bottom
-				if (y < world.tiles().height() - 1 && currentTile.countryId != world.tiles()(x, y + 1).countryId) {
+				if (y < this->state->tiles().height() - 1 && currentTile.countryId != this->state->tiles()(x, y + 1).countryId) {
 					sdl::render_line(renderer, x * this->tileSize, (y + 1) * this->tileSize - 1, (x + 1) * this->tileSize, (y + 1) * this->tileSize - 1);
 				}
 			}
@@ -127,8 +127,8 @@ namespace OpenKaiser {
 			return this->mode;
 		}
 
-		void init(std::shared_ptr<ResourceManager>& resourceManager, sdl::RendererPtr& renderer, sdl::FRect& screenArea) {
-			UIElement::init(renderer, resourceManager);
+		void init(std::shared_ptr<ResourceManager>& resourceManager, sdl::RendererPtr& renderer, std::shared_ptr<WorldState>& state) {
+			UIElement::init(renderer, resourceManager, state);
 
 			this->set_screen_area(screenArea);
 
@@ -143,14 +143,14 @@ namespace OpenKaiser {
 			this->add_building_texture(BuildingType::Palace, "data/graphics/tiles/palace.png");
 		}
 
-		void draw(WorldState& world) {
+		void draw() {
 			for (int x = 0; x < (this->screenArea.w / this->tileSize); x++) {
 				for (int y = 0; y < (this->screenArea.h / this->tileSize); y++) {
-					if (x >= world.tiles().width() || y >= world.tiles().height()) {
+					if (x >= this->state->tiles().width() || y >= this->state->tiles().height()) {
 						continue;
 					}
 
-					Tile& currentTile = world.tiles()(x, y);
+					Tile& currentTile = this->state->tiles()(x, y);
 					if (this->mode == RenderMode::Rect) {
 						draw_tile_rect(currentTile, x, y);
 					}
@@ -163,12 +163,12 @@ namespace OpenKaiser {
 						}
 					}
 
-					draw_borders(world, currentTile, x, y);
+					draw_borders(currentTile, x, y);
 				}
 			}
 
 			// Render country names
-			for (auto country : world.countries()) {
+			for (auto country : this->state->countries()) {
 				sdl::FPoint targetPosition = { 
 					this->screenArea.x + country.capital.x * this->tileSize + this->tileSize / 2, 
 					this->screenArea.y + country.capital.y * this->tileSize + this->tileSize / 2 
@@ -179,8 +179,8 @@ namespace OpenKaiser {
 			}
 		}
 
-		sdl::SurfacePtr render_to_surface(WorldState& state) {
-			auto tiles = state.tiles();
+		sdl::SurfacePtr render_to_surface() {
+			auto tiles = state->tiles();
 			float saveTileSize = 64;
 			sdl::SurfacePtr targetSurface = sdl::create_surface(tiles.width() * saveTileSize, tiles.height() * saveTileSize, sdl::PixelFormat::SDL_PIXELFORMAT_RGB24);
 			

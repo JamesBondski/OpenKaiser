@@ -32,18 +32,19 @@ namespace OpenKaiser {
 		std::shared_ptr<MenuManager> menu;
 
 	public:
-		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources)  override {
-			UIElement::init(renderer, resources);
+		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state)  override {
+			UIElement::init(renderer, resources, state);
 			sdl::get_current_render_output_size(renderer, &this->width, &this->height);
 
 			this->mapRenderer = std::make_shared<MapRenderer>();
 			sdl::FRect mapArea(0, 0, this->width, this->height - 200);
-			this->mapRenderer->init(this->resourceManager, this->renderer, mapArea);
+			this->mapRenderer->init(this->resourceManager, this->renderer, this->state);
+			this->mapRenderer->set_screen_area(mapArea);
 			this->mapRenderer->set_render_mode(RenderMode::Image);
 			this->children.push_back(this->mapRenderer);
 
 			this->menu = std::make_shared<MenuManager>();
-			this->menu->init(renderer, resources);
+			this->menu->init(renderer, resources, state);
 			sdl::FRect menuArea{ 0, this->height - 200, this->width, 200 };
 			this->menu->set_screen_area(menuArea);
 			this->children.push_back(this->menu);
@@ -57,15 +58,15 @@ namespace OpenKaiser {
 			this->menu->add_item(rootItem, quit);
 		}
 
-		void handle_event(WorldState& state, sdl::Event& event) override {
+		void handle_event(sdl::Event& event) override {
 			if (event.type == sdl::EventType::KeyDown) {
 				if (event.key.key == 112) {
 					std::cout << "Saving map.." << std::endl;
-					sdl::SurfacePtr mapSurface = this->mapRenderer->render_to_surface(state);
+					sdl::SurfacePtr mapSurface = this->mapRenderer->render_to_surface();
 					sdl::save_png(mapSurface, "map.png");
 				}
 			}
-			GameState::handle_event(state, event);
+			GameState::handle_event(event);
 		}
 
 		ResultAction handle_quit(const std::string itemName) {
