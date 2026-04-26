@@ -53,7 +53,7 @@ namespace OpenKaiser {
 			std::shared_ptr<MenuItem> quit = std::make_shared<MenuItem>();
 			quit->name = "quit";
 			quit->text = "(Q)uit";
-			quit->hotkey = 0x00000070u; // Q
+			quit->hotkey = 0x00000071u; // Q
 			quit->callback = [this](const std::string itemName) { return this->handle_quit(itemName); };
 			this->menu->add_item(rootItem, quit);
 		}

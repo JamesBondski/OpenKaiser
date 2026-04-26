@@ -21,8 +21,10 @@ namespace OpenKaiser {
 		std::unordered_map<TileType, sdl::TexturePtr> tileTextures;
 		std::unordered_map<BuildingType, sdl::TexturePtr> buildingTextures;
 
-		float tileSize = 32;
+		float tileSize = 64;
 		RenderMode mode = RenderMode::Rect;
+
+		sdl::FPoint offset{ 0,0 };
 
 		void load_country_colors() {
 			const std::string config_location = "data/config/country_colors.txt";
@@ -144,13 +146,17 @@ namespace OpenKaiser {
 		}
 
 		void draw() {
+			sdl::Point firstTile;
+			firstTile.x = (int)this->offset.x / (int)this->tileSize;
+			firstTile.y = (int)this->offset.y / (int)this->tileSize;
+
 			for (int x = 0; x < (this->screenArea.w / this->tileSize); x++) {
 				for (int y = 0; y < (this->screenArea.h / this->tileSize); y++) {
-					if (x >= this->state->tiles().width() || y >= this->state->tiles().height()) {
+					if (x >= (this->state->tiles().width()- firstTile.x) || y >= (this->state->tiles().height() - firstTile.y)) {
 						continue;
 					}
 
-					Tile& currentTile = this->state->tiles()(x, y);
+					Tile& currentTile = this->state->tiles()(firstTile.x + x, firstTile.y + y);
 					if (this->mode == RenderMode::Rect) {
 						draw_tile_rect(currentTile, x, y);
 					}
@@ -170,8 +176,8 @@ namespace OpenKaiser {
 			// Render country names
 			for (auto country : this->state->countries()) {
 				sdl::FPoint targetPosition = { 
-					this->screenArea.x + country.capital.x * this->tileSize + this->tileSize / 2, 
-					this->screenArea.y + country.capital.y * this->tileSize + this->tileSize / 2 
+					this->screenArea.x + (country.capital.x - firstTile.x) * this->tileSize + this->tileSize / 2, 
+					this->screenArea.y + (country.capital.y - firstTile.y) * this->tileSize + this->tileSize / 2 
 				};
 
 				auto texture = this->resourceManager->get_text(country.name, 14, 255, 255, 255);
@@ -197,6 +203,33 @@ namespace OpenKaiser {
 				}
 			}
 			return targetSurface;
+		}
+
+		void handle_event(sdl::Event& event) override {
+			if (event.type == sdl::EventType::KeyDown) {
+				switch (event.key.key) {
+				case 0x4000004fu: // Right
+					this->offset.x += this->tileSize;
+					break;
+				case 0x40000050u: // Left
+					this->offset.x -= this->tileSize;
+					break;
+				case 0x40000051u: // Down
+					this->offset.y += this->tileSize;
+					break;
+				case 0x40000052u: // Up
+					this->offset.y -= this->tileSize;
+					break;
+				}
+
+				if (this->offset.x < 0) {
+					this->offset.x = 0;
+				}
+				if (this->offset.y < 0) {
+					this->offset.y = 0;
+				}
+			}
+			UIElement::handle_event(event);
 		}
 	};
 

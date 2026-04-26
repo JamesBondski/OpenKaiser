@@ -104,7 +104,7 @@ namespace OpenKaiser {
 		void handle_event(sdl::Event& event) override {
 			if (event.type == sdl::EventType::KeyDown) {
 				for (auto child : this->currentItem->childItems) {
-					if (event.key.key = child->hotkey) {
+					if (event.key.key == child->hotkey) {
 						auto result = child->callback(child->name);
 						if (result == ResultAction::Back) {
 							this->currentItem = this->getItemByName(this->currentItem->parent->name);
