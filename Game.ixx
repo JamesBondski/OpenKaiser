@@ -100,7 +100,7 @@ namespace OpenKaiser {
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();
-			this->window = sdl::create_window("OpenKaiser", this->width, this->height, 0);
+			this->window = sdl::create_window("OpenKaiser", this->width, this->height, 0x20); // 0x20=Resizable
 			this->renderer = sdl::create_renderer(this->window.get());
 
 			sdl::ttf_init();

@@ -35,6 +35,14 @@ namespace OpenKaiser {
 			sdl::FRect ownArea{ 0, 0, width, height };
 			this->set_screen_area(ownArea);
 		}
+
+		void handle_event(sdl::Event& event) override {
+			if (event.type == sdl::EventType::WindowResized) {
+				sdl::FRect ownArea{ 0, 0, event.window.data1, event.window.data2};
+				this->set_screen_area(ownArea);
+			}
+			UIElement::handle_event(event);
+		}
 	};
 
 	export class MainState : public GameState {
