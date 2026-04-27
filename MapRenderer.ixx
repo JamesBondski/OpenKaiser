@@ -24,6 +24,7 @@ namespace OpenKaiser {
 
 		float tileSize = 64;
 		RenderMode mode = RenderMode::Rect;
+		bool showNames = true;
 
 		sdl::FPoint offset{ 0,0 };
 
@@ -130,6 +131,14 @@ namespace OpenKaiser {
 			return this->mode;
 		}
 
+		void show_names() {
+			this->showNames = true;
+		}
+
+		void hide_names() {
+			this->showNames = false;
+		}
+
 		void init(std::shared_ptr<ResourceManager>& resourceManager, sdl::RendererPtr& renderer, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController> controller) {
 			UIElement::init(renderer, resourceManager, state, controller);
 
@@ -175,20 +184,22 @@ namespace OpenKaiser {
 			}
 
 			// Render country names
-			for (auto country : this->state->countries()) {
-				sdl::FPoint targetPosition = { 
-					offset.x + this->screenArea.x + (country.capital.x - firstTile.x) * this->tileSize + this->tileSize / 2, 
-					offset.y + this->screenArea.y + (country.capital.y - firstTile.y) * this->tileSize + this->tileSize / 2 
-				};
+			if (this->showNames) {
+				for (auto country : this->state->countries()) {
+					sdl::FPoint targetPosition = {
+						offset.x + this->screenArea.x + (country.capital.x - firstTile.x) * this->tileSize + this->tileSize / 2,
+						offset.y + this->screenArea.y + (country.capital.y - firstTile.y) * this->tileSize + this->tileSize / 2
+					};
 
-				sdl::TexturePtr texture;
-				if (country.id != this->state->get_current_country_id()) {
-					texture = this->resourceManager->get_text(country.name, 14, 255, 255, 255);
+					sdl::TexturePtr texture;
+					if (country.id != this->state->get_current_country_id()) {
+						texture = this->resourceManager->get_text(country.name, 14, 255, 255, 255);
+					}
+					else {
+						texture = this->resourceManager->get_text(country.name, 14, 255, 0, 0);
+					}
+					sdl::render_texture_centered(this->renderer, texture, targetPosition);
 				}
-				else {
-					texture = this->resourceManager->get_text(country.name, 14, 255, 0, 0);
-				}
-				sdl::render_texture_centered(this->renderer, texture, targetPosition);
 			}
 		}
 

@@ -12,10 +12,39 @@ import GameController;
 import Menu;
 
 namespace OpenKaiser {
+	export class SideBar : public UIElement {
+	private:
+		std::shared_ptr<MapRenderer> miniMap;
+		const float padding = 5;
+
+	public:
+		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
+			UIElement::init(renderer, resources, state, controller);
+
+			this->miniMap = std::make_shared<MapRenderer>();
+			this->miniMap->init(this->resourceManager, this->renderer, this->state, this->controller);
+			this->miniMap->set_render_mode(RenderMode::Image);
+			this->miniMap->hide_names();
+			this->children.push_back(this->miniMap);
+		}
+
+		void set_screen_area(sdl::FRect& screenArea) override {
+			UIElement::set_screen_area(screenArea);
+
+			if (this->miniMap) {
+				sdl::FRect mapArea(this->padding, this->padding, this->screenArea.w - 2 * this->padding, this->screenArea.w - 2 * this->padding);
+				sdl::FPoint tileSize{ (float)this->screenArea.w / this->state->tiles().width() , (float)this->screenArea.h / this->state->tiles().height() };
+				this->miniMap->set_screen_area(mapArea);
+				this->miniMap->set_tile_size(std::min(tileSize.x, tileSize.y));
+			}
+		}
+	};
+
 	export class MainState : public GameState {
 	private:
 		std::shared_ptr<MapRenderer> mapRenderer;
 		std::shared_ptr<MenuManager> menu;
+		std::shared_ptr<SideBar> sideBar;
 
 	public:
 		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
@@ -26,11 +55,15 @@ namespace OpenKaiser {
 			this->mapRenderer->set_render_mode(RenderMode::Image);
 			this->children.push_back(this->mapRenderer);
 
+			this->sideBar = std::make_shared<SideBar>();
+			this->sideBar->init(this->renderer, this->resourceManager, this->state, this->controller);
+			this->children.push_back(this->sideBar);
+
 			this->menu = std::make_shared<MenuManager>();
 			this->menu->init(renderer, resources, state, controller);
-
 			this->children.push_back(this->menu);
 
+			// Menu
 			auto rootItem = this->menu->getRootItem();
 			std::shared_ptr<MenuItem> endTurn = std::make_shared<MenuItem>();
 			endTurn->name = "endturn";
@@ -55,11 +88,16 @@ namespace OpenKaiser {
 
 			if (this->mapRenderer && this->menu) {
 				const int menuHeight = 200;
-				sdl::FRect mapArea(0, 0, this->screenArea.w, this->screenArea.h - menuHeight);
+				const int sideBarWidth = 200;
+
+				sdl::FRect mapArea(0, 0, this->screenArea.w - sideBarWidth, this->screenArea.h - menuHeight);
 				this->mapRenderer->set_screen_area(mapArea);
 
 				sdl::FRect menuArea{ 0, mapArea.y + mapArea.h, this->screenArea.w, menuHeight };
 				this->menu->set_screen_area(menuArea);
+
+				sdl::FRect sideBarArea{ mapArea.w, 0, sideBarWidth, this->screenArea.h - menuHeight };
+				this->sideBar->set_screen_area(sideBarArea);
 			}
 		}
 
