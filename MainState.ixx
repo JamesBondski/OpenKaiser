@@ -29,7 +29,7 @@ namespace OpenKaiser {
 
 			SDL_Color textColor{ 255, 255, 255, 255 };
 			std::function<std::string()> textGetter = [this]() { return this->state->countries()[this->state->get_current_country_id()].name; };
-			this->currentPlayerText = std::make_shared<DynamicTextElement>(textGetter, 12, textColor, true);
+			this->currentPlayerText = std::make_shared<DynamicTextElement>(textGetter, (float)12, textColor, true);
 			this->add_child(this->currentPlayerText);
 
 			this->set_screen_area(this->screenArea);
