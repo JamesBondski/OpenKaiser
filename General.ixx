@@ -61,11 +61,12 @@ namespace OpenKaiser {
 			}
 		}
 
-		virtual void draw() {
+		virtual void draw(sdl::Point& offset) {
+			sdl::Point newOffset{ offset.x + this->screenArea.x, offset.y + this->screenArea.y };
 			for (auto element : children) {
-				sdl::Rect clipRect{ this->screenArea.x + element->get_screen_area().x, this->screenArea.y + element->get_screen_area().y, element->get_screen_area().w, element->get_screen_area().h };
+				sdl::Rect clipRect{ newOffset.x + element->get_screen_area().x, newOffset.y + element->get_screen_area().y, element->get_screen_area().w, element->get_screen_area().h };
 				sdl::set_render_clip_rect(this->renderer, &clipRect);
-				element->draw();
+				element->draw(newOffset);
 				sdl::set_render_clip_rect(this->renderer, nullptr);
 			}
 		}

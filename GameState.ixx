@@ -88,10 +88,10 @@ namespace OpenKaiser {
 
 			if (this->mapRenderer && this->menu) {
 				const int menuHeight = 200;
-				sdl::FRect mapArea(this->screenArea.x, this->screenArea.y, this->screenArea.w, this->screenArea.h - menuHeight);
+				sdl::FRect mapArea(0, 0, this->screenArea.w, this->screenArea.h - menuHeight);
 				this->mapRenderer->set_screen_area(mapArea);
 
-				sdl::FRect menuArea{ this->screenArea.x, mapArea.y + mapArea.h, this->screenArea.w, menuHeight };
+				sdl::FRect menuArea{ 0, mapArea.y + mapArea.h, this->screenArea.w, menuHeight };
 				this->menu->set_screen_area(menuArea);
 			}
 		}

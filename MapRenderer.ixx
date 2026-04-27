@@ -53,7 +53,7 @@ namespace OpenKaiser {
 			}
 		}
 
-		void draw_tile_rect(Tile& currentTile, int x, int y) {
+		void draw_tile_rect(sdl::Point& offset, Tile& currentTile, int x, int y) {
 			switch (currentTile.type) {
 			case TileType::Grass:
 				sdl::set_render_draw_color(renderer, { 76, 153, 0, 255 });
@@ -66,16 +66,16 @@ namespace OpenKaiser {
 				break;
 			}
 
-			sdl::FRect rect = { screenArea.x + x * this->tileSize, screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
+			sdl::FRect rect = { offset.x + screenArea.x + x * this->tileSize, offset.y + screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
 			sdl::render_fill_rect(renderer, rect);
 		}
 
-		void draw_tile_image(sdl::TexturePtr& texture, int x, int y) {
-			sdl::FRect rect = { screenArea.x + x * this->tileSize, screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
+		void draw_tile_image(sdl::Point& offset, sdl::TexturePtr& texture, int x, int y) {
+			sdl::FRect rect = { offset.x + screenArea.x + x * this->tileSize, offset.y + screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
 			sdl::render_texture(renderer, texture, rect);
 		}
 
-		void draw_borders(Tile& currentTile, int x, int y)
+		void draw_borders(sdl::Point& offset, Tile& currentTile, int x, int y)
 		{
 			// Draw country borders
 			if (currentTile.countryId >= 0) {
@@ -83,19 +83,19 @@ namespace OpenKaiser {
 				sdl::set_render_draw_color(renderer, cc);
 				// Left
 				if (x > 0 && currentTile.countryId != this->state->tiles()(x - 1, y).countryId) {
-					sdl::render_line(renderer, x * this->tileSize, y * this->tileSize, x * this->tileSize, (y + 1) * this->tileSize);
+					sdl::render_line(renderer, offset.x + x * this->tileSize, offset.y + y * this->tileSize, offset.x + x * this->tileSize, offset.y + (y + 1) * this->tileSize);
 				}
 				// Top
 				if (y > 0 && currentTile.countryId != this->state->tiles()(x, y - 1).countryId) {
-					sdl::render_line(renderer, x * this->tileSize, y * this->tileSize, (x + 1) * this->tileSize, y * this->tileSize);
+					sdl::render_line(renderer, offset.x + x * this->tileSize, offset.y + y * this->tileSize, offset.x + (x + 1) * this->tileSize, offset.y + y * this->tileSize);
 				}
 				// Right
 				if (x < this->state->tiles().width() - 1 && currentTile.countryId != this->state->tiles()(x + 1, y).countryId) {
-					sdl::render_line(renderer, (x + 1) * this->tileSize - 1, y * this->tileSize, (x + 1) * this->tileSize - 1, (y + 1) * this->tileSize);
+					sdl::render_line(renderer, offset.x + (x + 1) * this->tileSize - 1, offset.y + y * this->tileSize, offset.x + (x + 1) * this->tileSize - 1, offset.y + (y + 1) * this->tileSize);
 				}
 				// Bottom
 				if (y < this->state->tiles().height() - 1 && currentTile.countryId != this->state->tiles()(x, y + 1).countryId) {
-					sdl::render_line(renderer, x * this->tileSize, (y + 1) * this->tileSize - 1, (x + 1) * this->tileSize, (y + 1) * this->tileSize - 1);
+					sdl::render_line(renderer, offset.x + x * this->tileSize, offset.y + (y + 1) * this->tileSize - 1, offset.x + (x + 1) * this->tileSize, offset.y + (y + 1) * this->tileSize - 1);
 				}
 			}
 		}
@@ -145,7 +145,7 @@ namespace OpenKaiser {
 			this->add_building_texture(BuildingType::Palace, "data/graphics/tiles/palace.png");
 		}
 
-		void draw() {
+		void draw(sdl::Point& offset) override {
 			sdl::Point firstTile;
 			firstTile.x = (int)this->offset.x / (int)this->tileSize;
 			firstTile.y = (int)this->offset.y / (int)this->tileSize;
@@ -158,26 +158,26 @@ namespace OpenKaiser {
 
 					Tile& currentTile = this->state->tiles()(firstTile.x + x, firstTile.y + y);
 					if (this->mode == RenderMode::Rect) {
-						draw_tile_rect(currentTile, x, y);
+						draw_tile_rect(offset, currentTile, x, y);
 					}
 					if (this->mode == RenderMode::Image) {
 						if (currentTile.building != BuildingType::None) {
-							draw_tile_image(this->buildingTextures[currentTile.building], x, y);
+							draw_tile_image(offset, this->buildingTextures[currentTile.building], x, y);
 						}
 						else {
-							draw_tile_image(this->tileTextures[currentTile.type], x, y);
+							draw_tile_image(offset, this->tileTextures[currentTile.type], x, y);
 						}
 					}
 
-					draw_borders(currentTile, x, y);
+					draw_borders(offset, currentTile, x, y);
 				}
 			}
 
 			// Render country names
 			for (auto country : this->state->countries()) {
 				sdl::FPoint targetPosition = { 
-					this->screenArea.x + (country.capital.x - firstTile.x) * this->tileSize + this->tileSize / 2, 
-					this->screenArea.y + (country.capital.y - firstTile.y) * this->tileSize + this->tileSize / 2 
+					offset.x + this->screenArea.x + (country.capital.x - firstTile.x) * this->tileSize + this->tileSize / 2, 
+					offset.y + this->screenArea.y + (country.capital.y - firstTile.y) * this->tileSize + this->tileSize / 2 
 				};
 
 				sdl::TexturePtr texture;
