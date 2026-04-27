@@ -4,6 +4,7 @@ import std;
 import SDL3;
 import ResourceManager;
 import General;
+import UI;
 import WorldState;
 
 namespace OpenKaiser {

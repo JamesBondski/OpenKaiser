@@ -5,6 +5,7 @@ import WorldState;
 import std;
 import General;
 import ResourceManager;
+import UI;
 
 using std::uint8_t;
 

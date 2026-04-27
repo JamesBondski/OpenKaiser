@@ -6,8 +6,9 @@ import WorldGenerator;
 import General;
 import MapRenderer;
 import ResourceManager;
-import GameState;
+import MainState;
 import GameController;
+import UI;
 
 using std::uint8_t;
 

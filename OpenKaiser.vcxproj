@@ -136,8 +136,9 @@
   <ItemGroup>
     <ClCompile Include="Game.ixx" />
     <ClCompile Include="GameController.ixx" />
-    <ClCompile Include="GameState.ixx" />
+    <ClCompile Include="UI.ixx" />
     <ClCompile Include="General.ixx" />
+    <ClCompile Include="MainState.ixx" />
     <ClCompile Include="Menu.ixx" />
     <ClCompile Include="ResourceManager.ixx" />
     <ClCompile Include="MapRenderer.ixx" />

@@ -12,8 +12,9 @@
     <ClCompile Include="General.ixx" />
     <ClCompile Include="ResourceManager.ixx" />
     <ClCompile Include="MapRenderer.ixx" />
-    <ClCompile Include="GameState.ixx" />
+    <ClCompile Include="UI.ixx" />
     <ClCompile Include="Menu.ixx" />
     <ClCompile Include="GameController.ixx" />
+    <ClCompile Include="MainState.ixx" />
   </ItemGroup>
 </Project>

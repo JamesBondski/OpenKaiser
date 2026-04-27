@@ -1,50 +1,17 @@
-export module GameState;
+export module MainState;
 
 import std;
-import SDL3;
-import WorldState;
-import ResourceManager;
+import General;
+import UI;
 import MapRenderer;
 import Menu;
-import General;
+import SDL3;
+import ResourceManager;
+import WorldState;
+import GameController;
+import Menu;
 
 namespace OpenKaiser {
-	export class GameState : public UIElement {
-	protected:
-		std::string nextState;
-
-		void fill_screen() {
-
-		}
-	public:
-
-		std::string& get_next_state() {
-			return nextState;
-		}
-
-		void set_next_state(const std::string& stateName) {
-			nextState = stateName;
-		}
-
-		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
-			UIElement::init(renderer, resources, state, controller);
-
-			// Set screen area to whole screen
-			int width, height;
-			sdl::get_current_render_output_size(renderer, &width, &height);
-			sdl::FRect ownArea{ 0, 0, width, height };
-			this->set_screen_area(ownArea);
-		}
-
-		void handle_event(sdl::Event& event) override {
-			if (event.type == sdl::EventType::WindowResized) {
-				sdl::FRect ownArea{ 0, 0, event.window.data1, event.window.data2};
-				this->set_screen_area(ownArea);
-			}
-			UIElement::handle_event(event);
-		}
-	};
-
 	export class MainState : public GameState {
 	private:
 		std::shared_ptr<MapRenderer> mapRenderer;
@@ -61,7 +28,7 @@ namespace OpenKaiser {
 
 			this->menu = std::make_shared<MenuManager>();
 			this->menu->init(renderer, resources, state, controller);
-			
+
 			this->children.push_back(this->menu);
 
 			auto rootItem = this->menu->getRootItem();
