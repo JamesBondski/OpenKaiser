@@ -12,6 +12,10 @@ namespace OpenKaiser {
 	export class GameState : public UIElement {
 	protected:
 		std::string nextState;
+
+		void fill_screen() {
+
+		}
 	public:
 
 		std::string& get_next_state() {
@@ -21,31 +25,35 @@ namespace OpenKaiser {
 		void set_next_state(const std::string& stateName) {
 			nextState = stateName;
 		}
+
+		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
+			UIElement::init(renderer, resources, state, controller);
+
+			// Set screen area to whole screen
+			int width, height;
+			sdl::get_current_render_output_size(renderer, &width, &height);
+			sdl::FRect ownArea{ 0, 0, width, height };
+			this->set_screen_area(ownArea);
+		}
 	};
 
 	export class MainState : public GameState {
 	private:
 		std::shared_ptr<MapRenderer> mapRenderer;
-		int width;
-		int height;
 		std::shared_ptr<MenuManager> menu;
 
 	public:
 		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
-			UIElement::init(renderer, resources, state, controller);
-			sdl::get_current_render_output_size(renderer, &this->width, &this->height);
+			GameState::init(renderer, resources, state, controller);
 
 			this->mapRenderer = std::make_shared<MapRenderer>();
-			sdl::FRect mapArea(0, 0, this->width, this->height - 200);
 			this->mapRenderer->init(this->resourceManager, this->renderer, this->state, this->controller);
-			this->mapRenderer->set_screen_area(mapArea);
 			this->mapRenderer->set_render_mode(RenderMode::Image);
 			this->children.push_back(this->mapRenderer);
 
 			this->menu = std::make_shared<MenuManager>();
 			this->menu->init(renderer, resources, state, controller);
-			sdl::FRect menuArea{ 0, this->height - 200, this->width, 200 };
-			this->menu->set_screen_area(menuArea);
+			
 			this->children.push_back(this->menu);
 
 			auto rootItem = this->menu->getRootItem();
@@ -62,6 +70,22 @@ namespace OpenKaiser {
 			quit->hotkey = 0x00000071u; // Q
 			quit->callback = [this](const std::string itemName) { return this->handle_quit(itemName); };
 			this->menu->add_item(rootItem, quit);
+
+			// Make sure children are sized correctly
+			this->set_screen_area(this->screenArea);
+		}
+
+		void set_screen_area(sdl::FRect& screenArea) override {
+			GameState::set_screen_area(screenArea);
+
+			if (this->mapRenderer && this->menu) {
+				const int menuHeight = 200;
+				sdl::FRect mapArea(this->screenArea.x, this->screenArea.y, this->screenArea.w, this->screenArea.h - menuHeight);
+				this->mapRenderer->set_screen_area(mapArea);
+
+				sdl::FRect menuArea{ this->screenArea.x, mapArea.y + mapArea.h, this->screenArea.w, menuHeight };
+				this->menu->set_screen_area(menuArea);
+			}
 		}
 
 		void handle_event(sdl::Event& event) override {
