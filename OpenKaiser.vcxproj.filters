@@ -14,5 +14,6 @@
     <ClCompile Include="MapRenderer.ixx" />
     <ClCompile Include="GameState.ixx" />
     <ClCompile Include="Menu.ixx" />
+    <ClCompile Include="GameController.ixx" />
   </ItemGroup>
 </Project>

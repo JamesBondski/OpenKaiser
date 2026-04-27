@@ -4,6 +4,7 @@ import std;
 import SDL3;
 import ResourceManager;
 import WorldState;
+import GameController;
 
 namespace OpenKaiser {
 
@@ -21,6 +22,7 @@ namespace OpenKaiser {
 		std::vector<std::shared_ptr<UIElement>> children;
 		std::shared_ptr<WorldState> state;
 		std::string id;
+		std::shared_ptr<GameController> controller;
 
 	public:
 		virtual void set_screen_area(sdl::FRect& screenArea) {
@@ -46,10 +48,11 @@ namespace OpenKaiser {
 			return this->id;
 		}
 
-		virtual void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state) {
+		virtual void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) {
 			this->renderer = renderer;
 			this->resourceManager = resources;
 			this->state = state;
+			this->controller = controller;
 		}
 
 		virtual void update(float passedTime) {

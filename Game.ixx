@@ -7,6 +7,7 @@ import General;
 import MapRenderer;
 import ResourceManager;
 import GameState;
+import GameController;
 
 using std::uint8_t;
 
@@ -14,13 +15,14 @@ namespace OpenKaiser {
 
 	export class Game {
 	private:
+		std::shared_ptr<GameController> controller;
+		std::string currentState;
+		std::unordered_map<std::string, std::unique_ptr<GameState>> states;
+		std::shared_ptr<ResourceManager> resourceManager;
+		MapRenderer mapRenderer;
+
 		sdl::WindowPtr window;
 		sdl::RendererPtr renderer;
-
-		MapRenderer mapRenderer;
-		std::shared_ptr<ResourceManager> resourceManager;
-		std::unordered_map<std::string, std::unique_ptr<GameState>> states;
-		std::string currentState;
 
 		int width = 1280;
 		int height = 800;
@@ -84,7 +86,7 @@ namespace OpenKaiser {
 		void add_gamestate(const std::string& name) {
 			T* newState = new T();
 			this->states.insert(std::pair<std::string, std::unique_ptr<GameState>>(name, std::unique_ptr<GameState>(newState)));
-			newState->init(this->renderer, this->resourceManager, this->world);
+			newState->init(this->renderer, this->resourceManager, this->world, this->controller);
 		}
 
 	public:
@@ -92,6 +94,9 @@ namespace OpenKaiser {
 			std::cout << "Initializing World...\n";
 			this->world = WorldGenerator().generate(WorldConfig());
 			this->world->save("save/init.txt");
+
+			this->controller = std::make_shared<GameController>();
+			this->controller->init(this->world);
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();

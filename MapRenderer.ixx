@@ -129,8 +129,8 @@ namespace OpenKaiser {
 			return this->mode;
 		}
 
-		void init(std::shared_ptr<ResourceManager>& resourceManager, sdl::RendererPtr& renderer, std::shared_ptr<WorldState>& state) {
-			UIElement::init(renderer, resourceManager, state);
+		void init(std::shared_ptr<ResourceManager>& resourceManager, sdl::RendererPtr& renderer, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController> controller) {
+			UIElement::init(renderer, resourceManager, state, controller);
 
 			this->set_screen_area(screenArea);
 
@@ -180,7 +180,13 @@ namespace OpenKaiser {
 					this->screenArea.y + (country.capital.y - firstTile.y) * this->tileSize + this->tileSize / 2 
 				};
 
-				auto texture = this->resourceManager->get_text(country.name, 14, 255, 255, 255);
+				sdl::TexturePtr texture;
+				if (country.id != this->state->get_current_country_id()) {
+					texture = this->resourceManager->get_text(country.name, 14, 255, 255, 255);
+				}
+				else {
+					texture = this->resourceManager->get_text(country.name, 14, 255, 0, 0);
+				}
 				sdl::render_texture_centered(this->renderer, texture, targetPosition);
 			}
 		}

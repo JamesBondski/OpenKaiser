@@ -61,12 +61,17 @@ export namespace OpenKaiser {
 		Array2D<Tile> _tiles;
 		int mapSeed;
 		std::vector<Country> countries_;
+		std::int16_t currentCountryId = 0;
 
 	public:
 		WorldState(size_t width, size_t height) : _tiles(width, height) {
 		}
 
 		WorldState() {
+		}
+
+		std::int16_t get_current_country_id() {
+			return this->currentCountryId;
 		}
 
 		Array2D<Tile>& tiles() {
@@ -85,6 +90,14 @@ export namespace OpenKaiser {
 			this->mapSeed = value;
 		}
 
+		std::int16_t nextPlayer() {
+			this->currentCountryId++;
+			if (this->currentCountryId >= countries_.size()) {
+				this->currentCountryId = 0;
+			}
+			return this->currentCountryId;
+		}
+
 		void save(const std::string& path) {
 			std::ofstream save_file(path);
 			save_file << this->mapSeed << std::endl;
@@ -92,6 +105,7 @@ export namespace OpenKaiser {
 			for (Country& country : this->countries_) {
 				save_file << country.id << " " << country.name << " " << country.capital.x << " " << country.capital.y << std::endl;
 			}
+			save_file << this->currentCountryId << std::endl;
 			save_file << this->_tiles.width() << " " << this->_tiles.height() << std::endl;
 			for (Tile tile : this->_tiles.getTiles()) {
 				save_file << static_cast<int>(tile.type) << " " << static_cast<int>(tile.building) << " " << tile.countryId << " " << tile.population << std::endl;
@@ -112,6 +126,8 @@ export namespace OpenKaiser {
 				country.capital.y = y;
 				this->countries().push_back(country);
 			}
+
+			save_file >> this->currentCountryId;
 
 			int width, height;
 			save_file >> width >> height;

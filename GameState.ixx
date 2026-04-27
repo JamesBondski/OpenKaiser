@@ -9,7 +9,6 @@ import Menu;
 import General;
 
 namespace OpenKaiser {
-
 	export class GameState : public UIElement {
 	protected:
 		std::string nextState;
@@ -32,24 +31,31 @@ namespace OpenKaiser {
 		std::shared_ptr<MenuManager> menu;
 
 	public:
-		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state)  override {
-			UIElement::init(renderer, resources, state);
+		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
+			UIElement::init(renderer, resources, state, controller);
 			sdl::get_current_render_output_size(renderer, &this->width, &this->height);
 
 			this->mapRenderer = std::make_shared<MapRenderer>();
 			sdl::FRect mapArea(0, 0, this->width, this->height - 200);
-			this->mapRenderer->init(this->resourceManager, this->renderer, this->state);
+			this->mapRenderer->init(this->resourceManager, this->renderer, this->state, this->controller);
 			this->mapRenderer->set_screen_area(mapArea);
 			this->mapRenderer->set_render_mode(RenderMode::Image);
 			this->children.push_back(this->mapRenderer);
 
 			this->menu = std::make_shared<MenuManager>();
-			this->menu->init(renderer, resources, state);
+			this->menu->init(renderer, resources, state, controller);
 			sdl::FRect menuArea{ 0, this->height - 200, this->width, 200 };
 			this->menu->set_screen_area(menuArea);
 			this->children.push_back(this->menu);
 
 			auto rootItem = this->menu->getRootItem();
+			std::shared_ptr<MenuItem> endTurn = std::make_shared<MenuItem>();
+			endTurn->name = "endturn";
+			endTurn->text = "End (T)urn";
+			endTurn->hotkey = 0x00000074u; // T
+			endTurn->callback = [this](const std::string itemName) { return this->handle_end_turn(itemName); };
+			this->menu->add_item(rootItem, endTurn);
+
 			std::shared_ptr<MenuItem> quit = std::make_shared<MenuItem>();
 			quit->name = "quit";
 			quit->text = "(Q)uit";
@@ -71,6 +77,11 @@ namespace OpenKaiser {
 
 		ResultAction handle_quit(const std::string itemName) {
 			this->set_next_state("quit");
+			return ResultAction::None;
+		}
+
+		ResultAction handle_end_turn(const std::string itemName) {
+			this->controller->HandleCommand(std::make_unique<EndTurnCommand>());
 			return ResultAction::None;
 		}
 	};
