@@ -68,14 +68,14 @@ namespace OpenKaiser {
 			std::shared_ptr<MenuItem> endTurn = std::make_shared<MenuItem>();
 			endTurn->name = "endturn";
 			endTurn->text = "End (T)urn";
-			endTurn->hotkey = 0x00000074u; // T
+			endTurn->hotkey = sdl::SDLK::T; // T
 			endTurn->callback = [this](const std::string itemName) { return this->handle_end_turn(itemName); };
 			this->menu->add_item(rootItem, endTurn);
 
 			std::shared_ptr<MenuItem> quit = std::make_shared<MenuItem>();
 			quit->name = "quit";
 			quit->text = "(Q)uit";
-			quit->hotkey = 0x00000071u; // Q
+			quit->hotkey = sdl::SDLK::Q; // Q
 			quit->callback = [this](const std::string itemName) { return this->handle_quit(itemName); };
 			this->menu->add_item(rootItem, quit);
 
@@ -94,17 +94,6 @@ namespace OpenKaiser {
 				sdl::FRect menuArea{ this->screenArea.x, mapArea.y + mapArea.h, this->screenArea.w, menuHeight };
 				this->menu->set_screen_area(menuArea);
 			}
-		}
-
-		void handle_event(sdl::Event& event) override {
-			if (event.type == sdl::EventType::KeyDown) {
-				if (event.key.key == 112) {
-					std::cout << "Saving map.." << std::endl;
-					sdl::SurfacePtr mapSurface = this->mapRenderer->render_to_surface();
-					sdl::save_png(mapSurface, "map.png");
-				}
-			}
-			GameState::handle_event(event);
 		}
 
 		ResultAction handle_quit(const std::string itemName) {

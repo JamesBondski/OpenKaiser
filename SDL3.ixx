@@ -56,6 +56,11 @@ export namespace sdl {
         export constexpr Uint32 WindowResized = SDL_EVENT_WINDOW_RESIZED;
     }
 
+    export namespace SDLK {
+        export constexpr Uint32 Q = 0x00000071u;
+        export constexpr Uint32 T = 0x00000074u;
+    }
+
     export class sdl_error : public std::runtime_error {
     public:
         sdl_error(const std::string& msg)

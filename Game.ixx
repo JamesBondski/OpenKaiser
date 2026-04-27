@@ -48,12 +48,6 @@ namespace OpenKaiser {
 					std::cout << "Quitting...\n";
 					return false;
 				}
-				if (event.type == sdl::EventType::KeyDown) {
-					if(event.key.key == 32) {
-						std::cout << "Regenerating World...\n";
-						this->world = WorldGenerator().generate(WorldConfig());
-					}
-				}
 				this->state()->handle_event(event);
 			}
 
