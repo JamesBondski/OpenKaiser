@@ -11,8 +11,8 @@ namespace OpenKaiser {
 	};
 
 	export struct WorldConfig {
-		int width = 30;
-		int height = 25;
+		int width = 50;
+		int height = 50;
 		int numCountries = 10;
 	};
 

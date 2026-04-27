@@ -25,6 +25,7 @@ namespace OpenKaiser {
 		float tileSize = 64;
 		RenderMode mode = RenderMode::Rect;
 		bool showNames = true;
+		bool scrollable = true;
 
 		sdl::FPoint offset{ 0,0 };
 
@@ -139,6 +140,14 @@ namespace OpenKaiser {
 			this->showNames = false;
 		}
 
+		bool get_scrollable() {
+			return this->scrollable;
+		}
+
+		void set_scrollable(bool scrollable) {
+			this->scrollable = scrollable;
+		}
+
 		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resourceManager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
 			UIElement::init(renderer, resourceManager, state, controller);
 
@@ -224,7 +233,7 @@ namespace OpenKaiser {
 		}
 
 		void handle_event(sdl::Event& event) override {
-			if (event.type == sdl::EventType::KeyDown) {
+			if (this->scrollable && event.type == sdl::EventType::KeyDown) {
 				switch (event.key.key) {
 				case 0x4000004fu: // Right
 					this->offset.x += this->tileSize;

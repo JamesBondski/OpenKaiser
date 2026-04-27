@@ -24,7 +24,8 @@ namespace OpenKaiser {
 
 			this->miniMap = std::make_shared<MapRenderer>();
 			this->add_child(this->miniMap);
-			this->miniMap->set_render_mode(RenderMode::Image);
+			this->miniMap->set_render_mode(RenderMode::Rect);
+			this->miniMap->set_scrollable(false);
 			this->miniMap->hide_names();
 
 			SDL_Color textColor{ 255, 255, 255, 255 };
@@ -40,11 +41,11 @@ namespace OpenKaiser {
 
 			if (this->miniMap) {
 				sdl::FRect mapArea(this->padding, this->padding, this->screenArea.w - 2 * this->padding, this->screenArea.w - 2 * this->padding);
-				sdl::FPoint tileSize{ (float)this->screenArea.w / this->state->tiles().width() , (float)this->screenArea.h / this->state->tiles().height() };
+				sdl::FPoint tileSize{ (float)(this->screenArea.w - 2 * this->padding) / this->state->tiles().width() , ((float)this->screenArea.h - 2 * this->padding) / this->state->tiles().height() };
 				this->miniMap->set_screen_area(mapArea);
 				this->miniMap->set_tile_size(std::min(tileSize.x, tileSize.y));
 
-				sdl::FRect currentPlayerTextArea{ 0, mapArea.y + mapArea.h + this->padding, this->screenArea.w, 10 };
+				sdl::FRect currentPlayerTextArea{ 0, mapArea.y + mapArea.h, this->screenArea.w, 20 };
 				this->currentPlayerText->set_screen_area(currentPlayerTextArea);
 			}
 		}
