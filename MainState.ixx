@@ -15,6 +15,7 @@ namespace OpenKaiser {
 	export class SideBar : public UIElement {
 	private:
 		std::shared_ptr<MapRenderer> miniMap;
+		std::shared_ptr<DynamicTextElement> currentPlayerText;
 		const float padding = 5;
 
 	public:
@@ -22,10 +23,16 @@ namespace OpenKaiser {
 			UIElement::init(renderer, resources, state, controller);
 
 			this->miniMap = std::make_shared<MapRenderer>();
-			this->miniMap->init(this->resourceManager, this->renderer, this->state, this->controller);
+			this->add_child(this->miniMap);
 			this->miniMap->set_render_mode(RenderMode::Image);
 			this->miniMap->hide_names();
-			this->children.push_back(this->miniMap);
+
+			SDL_Color textColor{ 255, 255, 255, 255 };
+			std::function<std::string()> textGetter = [this]() { return this->state->countries()[this->state->get_current_country_id()].name; };
+			this->currentPlayerText = std::make_shared<DynamicTextElement>(textGetter, 12, textColor, true);
+			this->add_child(this->currentPlayerText);
+
+			this->set_screen_area(this->screenArea);
 		}
 
 		void set_screen_area(sdl::FRect& screenArea) override {
@@ -36,6 +43,9 @@ namespace OpenKaiser {
 				sdl::FPoint tileSize{ (float)this->screenArea.w / this->state->tiles().width() , (float)this->screenArea.h / this->state->tiles().height() };
 				this->miniMap->set_screen_area(mapArea);
 				this->miniMap->set_tile_size(std::min(tileSize.x, tileSize.y));
+
+				sdl::FRect currentPlayerTextArea{ 0, mapArea.y + mapArea.h + this->padding, this->screenArea.w, 10 };
+				this->currentPlayerText->set_screen_area(currentPlayerTextArea);
 			}
 		}
 	};
@@ -51,17 +61,14 @@ namespace OpenKaiser {
 			GameState::init(renderer, resources, state, controller);
 
 			this->mapRenderer = std::make_shared<MapRenderer>();
-			this->mapRenderer->init(this->resourceManager, this->renderer, this->state, this->controller);
+			this->add_child(this->mapRenderer);
 			this->mapRenderer->set_render_mode(RenderMode::Image);
-			this->children.push_back(this->mapRenderer);
 
 			this->sideBar = std::make_shared<SideBar>();
-			this->sideBar->init(this->renderer, this->resourceManager, this->state, this->controller);
-			this->children.push_back(this->sideBar);
+			this->add_child(this->sideBar);
 
 			this->menu = std::make_shared<MenuManager>();
-			this->menu->init(renderer, resources, state, controller);
-			this->children.push_back(this->menu);
+			this->add_child(this->menu);
 
 			// Menu
 			auto rootItem = this->menu->getRootItem();

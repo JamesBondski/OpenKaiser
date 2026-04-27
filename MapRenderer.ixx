@@ -139,7 +139,7 @@ namespace OpenKaiser {
 			this->showNames = false;
 		}
 
-		void init(std::shared_ptr<ResourceManager>& resourceManager, sdl::RendererPtr& renderer, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController> controller) {
+		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resourceManager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
 			UIElement::init(renderer, resourceManager, state, controller);
 
 			this->set_screen_area(screenArea);

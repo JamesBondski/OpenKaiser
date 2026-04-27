@@ -63,25 +63,29 @@ namespace OpenKaiser {
 			return it->second;
 		}
 
-		sdl::TexturePtr& get_text(const std::string& text, float size, std::uint8_t r, std::uint8_t g, std::uint8_t b ) {
+		sdl::TexturePtr& get_text(const std::string& text, float size, std::uint8_t r, std::uint8_t g, std::uint8_t b) {
+			sdl::Color color = { r, g, b, 255 };
+			return this->get_text(text, size, color);
+		}
+
+		sdl::TexturePtr& get_text(const std::string& text, float size, sdl::Color color) {
 			auto font_it = fonts.find(size);
 			if (font_it == fonts.end()) {
 				auto [it, inserted] = fonts.insert(std::pair<float, sdl::FontPtr>(size, sdl::ttf_open_font("data/fonts/OpenSans-Medium.ttf", size)));
 				font_it = it;
 			}
 
-			TextConfig config = { text, size, r, g, b };
+			TextConfig config = { text, size, color.r, color.g, color.b };
 			auto text_it = texts.find(config);
 			if (text_it != texts.end()) {
 				return text_it->second;
 			}
 			else {
-				sdl::Color color = { r, g, b, 255 };
+				
 				sdl::TexturePtr rendered = sdl::ttf_render_text(this->renderer, font_it->second, text, color);
 				auto [it, inserted] = texts.insert(std::pair<TextConfig, sdl::TexturePtr>(config, rendered));
 				return it->second;
 			}
-			
 		}
 	};
 

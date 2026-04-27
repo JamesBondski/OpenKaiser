@@ -42,6 +42,11 @@ namespace OpenKaiser {
 			return this->id;
 		}
 
+		template <typename T> void add_child(std::shared_ptr<T>& element) {
+			element->init(this->renderer, this->resourceManager, this->state, this->controller);
+			this->children.push_back(element);
+		}
+
 		virtual void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) {
 			this->renderer = renderer;
 			this->resourceManager = resources;
@@ -69,6 +74,79 @@ namespace OpenKaiser {
 				element->handle_event(event);
 			}
 		};
+	};
+
+	export class TextElement : public UIElement {
+	private:
+		sdl::Color color;
+		std::string text;
+		float size;
+		bool centered;
+
+	public:
+		TextElement(const std::string& text, float size, const sdl::Color& color, bool centered = false)
+			: text(text), size(size), color(color), centered(centered) {
+		}
+
+		void draw(sdl::Point& offset) override {
+			auto texture = this->resourceManager->get_text(this->text, this->size, this->color);
+			if (this->centered) {
+				sdl::FPoint middle{ offset.x + this->screenArea.x + this->screenArea.w / 2, offset.y + this->screenArea.y + this->screenArea.h / 2 };
+				sdl::render_texture_centered(this->renderer, texture, middle);
+			}
+			else {
+				sdl::FRect outputArea{ offset.x + this->screenArea.x, offset.y + this->screenArea.y, this->screenArea.w, this->screenArea.h };
+				sdl::render_texture(this->renderer, texture, outputArea);
+			}
+		}
+
+		void set_color(const sdl::Color& color) {
+			this->color = color;
+		}
+
+		sdl::Color& get_color() {
+			return this->color;
+		}
+
+		void set_text(const std::string& text) {
+			this->text = text;
+		}
+
+		std::string& get_text() {
+			return this->text;
+		}
+
+		void set_size(float size) {
+			this->size = size;
+		}
+
+		float get_size() {
+			return this->size;
+		}
+
+		void set_centered(bool centered) {
+			this->centered = centered;
+		}
+
+		bool is_centered() {
+			return this->centered;
+		}
+
+	};
+
+	export class DynamicTextElement : public TextElement {
+	private:
+		std::function<std::string()> textGetter;
+	public:
+		DynamicTextElement(std::function<std::string()>& textGetter, float size, const sdl::Color& color, bool centered = false)
+			: TextElement("", size, color, centered) {
+			this->textGetter = textGetter;
+		}
+
+		void draw(sdl::Point& offset) override {
+			this->set_text(textGetter());
+			TextElement::draw(offset);
+		}
 	};
 
 	export class GameState : public UIElement {
