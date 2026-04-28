@@ -63,19 +63,24 @@ namespace OpenKaiser {
 	private:
 		std::shared_ptr<MiniMap> miniMap;
 		std::shared_ptr<DynamicTextElement> currentPlayerText;
+		std::shared_ptr<VerticalStack> stack;
 		const float padding = 5;
 
 	public:
 		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			UIElement::init(renderer, resources, state, controller);
 
+			this->stack = std::make_shared<VerticalStack>();
+			this->add_child(this->stack);
+
 			this->miniMap = std::make_shared<MiniMap>();
-			this->add_child(this->miniMap);
+			this->stack->add_child(this->miniMap);
 
 			sdl::Color textColor{ 255, 255, 255, 255 };
 			std::function<std::string()> textGetter = [this]() { return this->state->countries()[this->state->get_current_country_id()].name; };
 			this->currentPlayerText = std::make_shared<DynamicTextElement>(textGetter, (float)12, textColor, true);
-			this->add_child(this->currentPlayerText);
+			this->currentPlayerText->get_screen_area().h = 30;
+			this->stack->add_child(this->currentPlayerText);
 
 			this->set_screen_area(this->screenArea);
 		}
@@ -83,13 +88,10 @@ namespace OpenKaiser {
 		void set_screen_area(sdl::FRect& screenArea) override {
 			UIElement::set_screen_area(screenArea);
 
-			if (this->miniMap) {
-				sdl::FRect mapArea(this->padding, this->padding, this->screenArea.w - 2 * this->padding, this->screenArea.w - 2 * this->padding);
-				this->miniMap->set_screen_area(mapArea);
+			this->miniMap->get_screen_area().h = this->screenArea.w;
 
-				sdl::FRect currentPlayerTextArea{ 0, mapArea.y + mapArea.h, this->screenArea.w, 20 };
-				this->currentPlayerText->set_screen_area(currentPlayerTextArea);
-			}
+			sdl::FRect stackArea{ 0, 0, this->screenArea.w, this->screenArea.h };
+			this->stack->set_screen_area(stackArea);
 		}
 	};
 

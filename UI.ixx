@@ -80,6 +80,24 @@ namespace OpenKaiser {
 		};
 	};
 
+	export class VerticalStack : public UIElement {
+	private:
+	public:
+		void set_screen_area(sdl::FRect& screenArea) override {
+			UIElement::set_screen_area(screenArea);
+
+			// Start with our top left and keep the width. Height will be taken from the child elements.
+			sdl::FRect childArea = {0, 0, this->screenArea.w, 0};
+			for (std::shared_ptr<UIElement>& child : this->children) {
+				// Keep width of
+				childArea.h = child->get_screen_area().h;
+				child->set_screen_area(childArea);
+
+				childArea.y += childArea.h;
+			}
+		}
+	};
+
 	export class TextElement : public UIElement {
 	private:
 		sdl::Color color;
