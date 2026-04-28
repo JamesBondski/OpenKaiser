@@ -19,218 +19,212 @@ namespace OpenKaiser {
 
 	export class MapRenderer : public UIElement {
 	private:
-		std::vector<sdl::Color> country_colors;
-		std::unordered_map<TileType, sdl::TexturePtr> tileTextures;
-		std::unordered_map<BuildingType, sdl::TexturePtr> buildingTextures;
-		std::unordered_map<TileType, sdl::Color> tileColors;
+		std::vector<sdl::Color> country_colors_;
+		std::unordered_map<TileType, sdl::TexturePtr> tile_textures_;
+		std::unordered_map<BuildingType, sdl::TexturePtr> building_textures_;
+		std::unordered_map<TileType, sdl::Color> tile_colors_;
 
-		float tileSize = 64;
-		RenderMode mode = RenderMode::Rect;
-		bool showNames = true;
-		bool scrollable = true;
+		float tile_size_ = 64;
+		RenderMode mode_ = RenderMode::Rect;
+		bool show_names_ = true;
+		bool scrollable_ = true;
 
-		sdl::FPoint offset{ 0,0 };
+		sdl::FPoint offset_{ 0,0 };
 
-		void draw_tile_rect(sdl::Point& offset, Tile& currentTile, int x, int y) {
-			switch (currentTile.type) {
+		void DrawTileRect(sdl::Point& offset, Tile& current_tile, int x, int y) {
+			switch (current_tile.type) {
 			case TileType::Grass:
-				sdl::set_render_draw_color(renderer, { 76, 153, 0, 255 });
+				sdl::set_render_draw_color(renderer_, { 76, 153, 0, 255 });
 				break;
 			case TileType::Water:
-				sdl::set_render_draw_color(renderer, { 41, 128, 185, 255 });
+				sdl::set_render_draw_color(renderer_, { 41, 128, 185, 255 });
 				break;
 			case TileType::Mountain:
-				sdl::set_render_draw_color(renderer, { 127, 140, 141, 255 });
+				sdl::set_render_draw_color(renderer_, { 127, 140, 141, 255 });
 				break;
 			}
 
-			sdl::FRect rect = { offset.x + screenArea.x + x * this->tileSize, offset.y + screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
-			sdl::render_fill_rect(renderer, rect);
+			sdl::FRect rect = { offset.x + screen_area_.x + x * tile_size_, offset.y + screen_area_.y + y * tile_size_, tile_size_, tile_size_ };
+			sdl::render_fill_rect(renderer_, rect);
 		}
 
-		void draw_tile_image(sdl::Point& offset, sdl::TexturePtr& texture, int x, int y) {
-			sdl::FRect rect = { offset.x + screenArea.x + x * this->tileSize, offset.y + screenArea.y + y * this->tileSize, this->tileSize, this->tileSize };
-			sdl::render_texture(renderer, texture, rect);
+		void DrawTileImage(sdl::Point& offset, sdl::TexturePtr& texture, int x, int y) {
+			sdl::FRect rect = { offset.x + screen_area_.x + x * tile_size_, offset.y + screen_area_.y + y * tile_size_, tile_size_, tile_size_ };
+			sdl::render_texture(renderer_, texture, rect);
 		}
 
-		void draw_borders(sdl::Point& offset, Tile& currentTile, int x, int y)
+		void DrawBorders(sdl::Point& offset, Tile& current_tile, int x, int y)
 		{
-			// Draw country borders
-			if (currentTile.countryId >= 0) {
-				auto cc = this->country_colors[currentTile.countryId];
-				sdl::set_render_draw_color(renderer, cc);
-				// Left
-				if (x > 0 && currentTile.countryId != this->state->tiles()(x - 1, y).countryId) {
-					sdl::render_line(renderer, offset.x + x * this->tileSize, offset.y + y * this->tileSize, offset.x + x * this->tileSize, offset.y + (y + 1) * this->tileSize);
+			if (current_tile.countryId >= 0) {
+				auto cc = country_colors_[current_tile.countryId];
+				sdl::set_render_draw_color(renderer_, cc);
+				if (x > 0 && current_tile.countryId != state_->tiles()(x - 1, y).countryId) {
+					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + y * tile_size_, offset.x + x * tile_size_, offset.y + (y + 1) * tile_size_);
 				}
-				// Top
-				if (y > 0 && currentTile.countryId != this->state->tiles()(x, y - 1).countryId) {
-					sdl::render_line(renderer, offset.x + x * this->tileSize, offset.y + y * this->tileSize, offset.x + (x + 1) * this->tileSize, offset.y + y * this->tileSize);
+				if (y > 0 && current_tile.countryId != state_->tiles()(x, y - 1).countryId) {
+					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + y * tile_size_, offset.x + (x + 1) * tile_size_, offset.y + y * tile_size_);
 				}
-				// Right
-				if (x < this->state->tiles().width() - 1 && currentTile.countryId != this->state->tiles()(x + 1, y).countryId) {
-					sdl::render_line(renderer, offset.x + (x + 1) * this->tileSize - 1, offset.y + y * this->tileSize, offset.x + (x + 1) * this->tileSize - 1, offset.y + (y + 1) * this->tileSize);
+				if (x < state_->tiles().width() - 1 && current_tile.countryId != state_->tiles()(x + 1, y).countryId) {
+					sdl::render_line(renderer_, offset.x + (x + 1) * tile_size_ - 1, offset.y + y * tile_size_, offset.x + (x + 1) * tile_size_ - 1, offset.y + (y + 1) * tile_size_);
 				}
-				// Bottom
-				if (y < this->state->tiles().height() - 1 && currentTile.countryId != this->state->tiles()(x, y + 1).countryId) {
-					sdl::render_line(renderer, offset.x + x * this->tileSize, offset.y + (y + 1) * this->tileSize - 1, offset.x + (x + 1) * this->tileSize, offset.y + (y + 1) * this->tileSize - 1);
+				if (y < state_->tiles().height() - 1 && current_tile.countryId != state_->tiles()(x, y + 1).countryId) {
+					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + (y + 1) * tile_size_ - 1, offset.x + (x + 1) * tile_size_, offset.y + (y + 1) * tile_size_ - 1);
 				}
 			}
 		}
 
-		void add_tile_texture(TileType type, const std::string& path) {
-			this->tileTextures.insert(std::pair<TileType, sdl::TexturePtr>(type, this->resourceManager->get_image(path)));
+		void AddTileTexture(TileType type, const std::string& path) {
+			tile_textures_.insert(std::pair<TileType, sdl::TexturePtr>(type, resource_manager_->get_image(path)));
 		}
 
-		void add_building_texture(BuildingType type, const std::string& path) {
-			this->buildingTextures.insert(std::pair<BuildingType, sdl::TexturePtr>(type, this->resourceManager->get_image(path)));
-		}
+		void AddBuildingTexture(BuildingType type, const std::string& path) {
+				building_textures_.insert(std::pair<BuildingType, sdl::TexturePtr>(type, resource_manager_->get_image(path)));
+			}
 
 	public:
-		void set_tile_size(float tileSize) {
-			this->tileSize = tileSize;
-		}
+		void set_tile_size(float tile_size) {
+				tile_size_ = tile_size;
+			}
 
-		float get_tile_size() {
-			return this->tileSize;
-		}
+		float tile_size() const {
+				return tile_size_;
+			}
 
 		void set_render_mode(RenderMode mode) {
-			this->mode = mode;
+				mode_ = mode;
+			}
+
+		RenderMode& render_mode() {
+				return mode_;
+			}
+
+		void ShowNames() {
+			show_names_ = true;
 		}
 
-		RenderMode& get_render_mode() {
-			return this->mode;
+		void HideNames() {
+			show_names_ = false;
 		}
 
-		void show_names() {
-			this->showNames = true;
-		}
-
-		void hide_names() {
-			this->showNames = false;
-		}
-
-		bool get_scrollable() {
-			return this->scrollable;
-		}
+		bool scrollable() const {
+				return scrollable_;
+			}
 
 		void set_scrollable(bool scrollable) {
-			this->scrollable = scrollable;
+				scrollable_ = scrollable;
+			}
+
+		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resource_manager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
+				UIElement::Init(renderer, resource_manager, state, controller);
+
+				country_colors_ = Config::LoadCountryColors();
+				tile_colors_ = Config::LoadTileColors();
+
+				set_screen_area(screen_area_);
+
+				AddTileTexture(TileType::Grass, "data/graphics/tiles/grass.png");
+				AddTileTexture(TileType::Water, "data/graphics/tiles/water.png");
+				AddTileTexture(TileType::Mountain, "data/graphics/tiles/mountain.png");
+
+				AddBuildingTexture(BuildingType::Castle, "data/graphics/tiles/castle.png");
+				AddBuildingTexture(BuildingType::Village, "data/graphics/tiles/village.png");
+			AddBuildingTexture(BuildingType::Field, "data/graphics/tiles/field.png");
+			AddBuildingTexture(BuildingType::Pasture, "data/graphics/tiles/pasture.png");
+			AddBuildingTexture(BuildingType::Palace, "data/graphics/tiles/palace.png");
 		}
 
-		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resourceManager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
-			UIElement::init(renderer, resourceManager, state, controller);
+		void Draw(sdl::Point& offset) override {
+			sdl::Point first_tile;
+			first_tile.x = (int)offset_.x / (int)tile_size_;
+			first_tile.y = (int)offset_.y / (int)tile_size_;
 
-			this->country_colors = Config::load_country_colors();
-			this->tileColors = Config::load_tile_colors();
-
-			this->set_screen_area(screenArea);
-
-			this->add_tile_texture(TileType::Grass, "data/graphics/tiles/grass.png");
-			this->add_tile_texture(TileType::Water, "data/graphics/tiles/water.png");
-			this->add_tile_texture(TileType::Mountain, "data/graphics/tiles/mountain.png");
-
-			this->add_building_texture(BuildingType::Castle, "data/graphics/tiles/castle.png");
-			this->add_building_texture(BuildingType::Village, "data/graphics/tiles/village.png");
-			this->add_building_texture(BuildingType::Field, "data/graphics/tiles/field.png");
-			this->add_building_texture(BuildingType::Pasture, "data/graphics/tiles/pasture.png");
-			this->add_building_texture(BuildingType::Palace, "data/graphics/tiles/palace.png");
-		}
-
-		void draw(sdl::Point& offset) override {
-			sdl::Point firstTile;
-			firstTile.x = (int)this->offset.x / (int)this->tileSize;
-			firstTile.y = (int)this->offset.y / (int)this->tileSize;
-
-			for (int x = 0; x < (this->screenArea.w / this->tileSize); x++) {
-				for (int y = 0; y < (this->screenArea.h / this->tileSize); y++) {
-					if (x >= (this->state->tiles().width()- firstTile.x) || y >= (this->state->tiles().height() - firstTile.y)) {
+			for (int x = 0; x < (screen_area_.w / tile_size_); x++) {
+				for (int y = 0; y < (screen_area_.h / tile_size_); y++) {
+					if (x >= (state_->tiles().width()- first_tile.x) || y >= (state_->tiles().height() - first_tile.y)) {
 						continue;
 					}
 
-					Tile& currentTile = this->state->tiles()(firstTile.x + x, firstTile.y + y);
-					if (this->mode == RenderMode::Rect) {
-						draw_tile_rect(offset, currentTile, x, y);
+					Tile& current_tile = state_->tiles()(first_tile.x + x, first_tile.y + y);
+					if (mode_ == RenderMode::Rect) {
+						DrawTileRect(offset, current_tile, x, y);
 					}
-					if (this->mode == RenderMode::Image) {
-						if (currentTile.building != BuildingType::None) {
-							draw_tile_image(offset, this->buildingTextures[currentTile.building], x, y);
+					if (mode_ == RenderMode::Image) {
+						if (current_tile.building != BuildingType::None) {
+							DrawTileImage(offset, building_textures_[current_tile.building], x, y);
 						}
 						else {
-							draw_tile_image(offset, this->tileTextures[currentTile.type], x, y);
+							DrawTileImage(offset, tile_textures_[current_tile.type], x, y);
 						}
 					}
 
-					draw_borders(offset, currentTile, x, y);
+					DrawBorders(offset, current_tile, x, y);
 				}
 			}
 
-			// Render country names
-			if (this->showNames) {
-				for (auto country : this->state->countries()) {
-					sdl::FPoint targetPosition = {
-						offset.x + this->screenArea.x + (country.capital.x - firstTile.x) * this->tileSize + this->tileSize / 2,
-						offset.y + this->screenArea.y + (country.capital.y - firstTile.y) * this->tileSize + this->tileSize / 2
+			if (show_names_) {
+				for (auto country : state_->countries()) {
+					sdl::FPoint target_position = {
+						offset.x + screen_area_.x + (country.capital.x - first_tile.x) * tile_size_ + tile_size_ / 2,
+						offset.y + screen_area_.y + (country.capital.y - first_tile.y) * tile_size_ + tile_size_ / 2
 					};
 
 					sdl::TexturePtr texture;
-					if (country.id != this->state->get_current_country_id()) {
-						texture = this->resourceManager->get_text(country.name, 14, 255, 255, 255);
+					if (country.id != state_->current_country_id()) {
+						texture = resource_manager_->get_text(country.name, 14, 255, 255, 255);
 					}
 					else {
-						texture = this->resourceManager->get_text(country.name, 14, 255, 0, 0);
+						texture = resource_manager_->get_text(country.name, 14, 255, 0, 0);
 					}
-					sdl::render_texture_centered(this->renderer, texture, targetPosition);
+					sdl::render_texture_centered(renderer_, texture, target_position);
 				}
 			}
 		}
 
-		sdl::SurfacePtr render_to_surface() {
-			auto tiles = state->tiles();
-			float saveTileSize = 64;
-			sdl::SurfacePtr targetSurface = sdl::create_surface(tiles.width() * saveTileSize, tiles.height() * saveTileSize, sdl::PixelFormat::SDL_PIXELFORMAT_RGB24);
-			
-			std::unordered_map<TileType, sdl::SurfacePtr> tileSurfaces;
-			tileSurfaces[TileType::Grass] = sdl::load_surface("data/graphics/tiles/grass.png");
-			tileSurfaces[TileType::Mountain] = sdl::load_surface("data/graphics/tiles/mountain.png");
-			tileSurfaces[TileType::Water] = sdl::load_surface("data/graphics/tiles/water.png");
+		sdl::SurfacePtr RenderToSurface() {
+			auto tiles = state_->tiles();
+			float kSaveTileSize = 64;
+			sdl::SurfacePtr target_surface = sdl::create_surface(tiles.width() * kSaveTileSize, tiles.height() * kSaveTileSize, sdl::PixelFormat::SDL_PIXELFORMAT_RGB24);
+
+			std::unordered_map<TileType, sdl::SurfacePtr> tile_surfaces;
+			tile_surfaces[TileType::Grass] = sdl::load_surface("data/graphics/tiles/grass.png");
+			tile_surfaces[TileType::Mountain] = sdl::load_surface("data/graphics/tiles/mountain.png");
+			tile_surfaces[TileType::Water] = sdl::load_surface("data/graphics/tiles/water.png");
 
 			for (int x = 0; x < tiles.width(); x++) {
 				for (int y = 0; y < tiles.height(); y++) {
-					Tile& currentTile = tiles(x, y);
-					sdl::Rect dstrect{ x * saveTileSize, y * saveTileSize, saveTileSize, saveTileSize };
-					sdl::blit_surface(tileSurfaces[currentTile.type], nullptr, targetSurface, &dstrect);
+					Tile& current_tile = tiles(x, y);
+					sdl::Rect dstrect{ x * kSaveTileSize, y * kSaveTileSize, kSaveTileSize, kSaveTileSize };
+					sdl::blit_surface(tile_surfaces[current_tile.type], nullptr, target_surface, &dstrect);
 				}
 			}
-			return targetSurface;
+			return target_surface;
 		}
 
-		void handle_event(sdl::Event& event) override {
-			if (this->scrollable && event.type == sdl::EventType::KeyDown) {
+		void HandleEvent(sdl::Event& event) override {
+			if (scrollable_ && event.type == sdl::EventType::KeyDown) {
 				switch (event.key.key) {
-				case 0x4000004fu: // Right
-					this->offset.x += this->tileSize;
+				case 0x4000004fu:
+					offset_.x += tile_size_;
 					break;
-				case 0x40000050u: // Left
-					this->offset.x -= this->tileSize;
+				case 0x40000050u:
+					offset_.x -= tile_size_;
 					break;
-				case 0x40000051u: // Down
-					this->offset.y += this->tileSize;
+				case 0x40000051u:
+					offset_.y += tile_size_;
 					break;
-				case 0x40000052u: // Up
-					this->offset.y -= this->tileSize;
+				case 0x40000052u:
+					offset_.y -= tile_size_;
 					break;
 				}
 
-				if (this->offset.x < 0) {
-					this->offset.x = 0;
+				if (offset_.x < 0) {
+					offset_.x = 0;
 				}
-				if (this->offset.y < 0) {
-					this->offset.y = 0;
+				if (offset_.y < 0) {
+					offset_.y = 0;
 				}
 			}
-			UIElement::handle_event(event);
+			UIElement::HandleEvent(event);
 		}
 	};
 

@@ -39,51 +39,49 @@ namespace OpenKaiser {
 
 	export class ResourceManager {
 	private:
-		sdl::RendererPtr renderer;
+		sdl::RendererPtr renderer_;
 
-		// Images
-		std::unordered_map<std::string, sdl::TexturePtr> textures;
-		
-		// Fonts
-		std::unordered_map<float, sdl::FontPtr> fonts;
-		std::unordered_map<TextConfig, sdl::TexturePtr, TextConfigHash> texts;
-		
+		std::unordered_map<std::string, sdl::TexturePtr> textures_;
+
+		std::unordered_map<float, sdl::FontPtr> fonts_;
+		std::unordered_map<TextConfig, sdl::TexturePtr, TextConfigHash> texts_;
+
 	public:
-		void init(sdl::RendererPtr& renderer) {
-			this->renderer = renderer;
+		void Init(sdl::RendererPtr& renderer) {
+			renderer_ = renderer;
 		}
 
 		sdl::TexturePtr& get_image(const std::string& path) {
-			auto texture = textures.find(path);
-			if (texture != textures.end()) {
+			auto texture = textures_.find(path);
+			if (texture != textures_.end()) {
 				return texture->second;
 			}
 
-			auto [it, inserted] = textures.insert(std::pair<std::string, sdl::TexturePtr>(path, sdl::load_texture(this->renderer, path)));
+			auto [it, inserted] = textures_.insert(std::pair<std::string, sdl::TexturePtr>(path, sdl::load_texture(renderer_, path)));
 			return it->second;
 		}
 
 		sdl::TexturePtr& get_text(const std::string& text, float size, std::uint8_t r, std::uint8_t g, std::uint8_t b) {
 			sdl::Color color = { r, g, b, 255 };
-			return this->get_text(text, size, color);
+			return get_text(text, size, color);
 		}
 
 		sdl::TexturePtr& get_text(const std::string& text, float size, sdl::Color color) {
-			auto font_it = fonts.find(size);
-			if (font_it == fonts.end()) {
-				auto [it, inserted] = fonts.insert(std::pair<float, sdl::FontPtr>(size, sdl::ttf_open_font("data/fonts/OpenSans-Medium.ttf", size)));
+			auto font_it = fonts_.find(size);
+			if (font_it == fonts_.end()) {
+				auto [it, inserted] = fonts_.insert(std::pair<float, sdl::FontPtr>(size, sdl::ttf_open_font("data/fonts/OpenSans-Medium.ttf", size)));
 				font_it = it;
 			}
 
 			TextConfig config = { text, size, color.r, color.g, color.b };
-			auto text_it = texts.find(config);
-			if (text_it != texts.end()) {
+			auto text_it = texts_.find(config);
+			if (text_it != texts_.end()) {
 				return text_it->second;
 			}
 			else {
-				
-				sdl::TexturePtr rendered = sdl::ttf_render_text(this->renderer, font_it->second, text, color);
-				auto [it, inserted] = texts.insert(std::pair<TextConfig, sdl::TexturePtr>(config, rendered));
+
+				sdl::TexturePtr rendered = sdl::ttf_render_text(renderer_, font_it->second, text, color);
+				auto [it, inserted] = texts_.insert(std::pair<TextConfig, sdl::TexturePtr>(config, rendered));
 				return it->second;
 			}
 		}

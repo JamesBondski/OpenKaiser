@@ -7,52 +7,47 @@ import General;
 namespace OpenKaiser {
 
 	export class MapGenerator {
-		virtual void generate(std::shared_ptr<WorldState>& state, std::mt19937& gen) = 0;
+		virtual void Generate(std::shared_ptr<WorldState>& state, std::mt19937& gen) = 0;
 	};
 
 	export struct WorldConfig {
 		int width = 50;
 		int height = 50;
-		int numCountries = 10;
+		int num_countries = 10;
 	};
 
 	export class FloatMapGenerator : public MapGenerator {
 	public:
-		void generate(std::shared_ptr<WorldState>& state, std::mt19937& gen) override {
+		void Generate(std::shared_ptr<WorldState>& state, std::mt19937& gen) override {
 			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 			Array2D<Tile>& tiles = state->tiles();
 
-			// Fill initial height map with random values
-			Array2D<float> heightMap(tiles.width(), tiles.height());
+			Array2D<float> height_map(tiles.width(), tiles.height());
 			for (size_t x = 0; x < tiles.width(); ++x) {
 				for (size_t y = 0; y < tiles.height(); ++y) {
-					// Fill the edges with water / lowest value
 					if(x <= 1 || y <= 1 || x == tiles.width() - 2 || y == tiles.height() - 2) {
-						heightMap(x, y) = 0.0f;
+						height_map(x, y) = 0.0f;
 					}
 					else {
-						heightMap(x, y) = dist(gen);
+						height_map(x, y) = dist(gen);
 					}
 				}
 			}
 
-			const int scanWidth = 2;
+			const int kScanWidth = 2;
 
-			// Try to smooth out the height map by averaging each tile with its neighbors
 			for (int x = 0; x < tiles.width(); ++x) {
 				for (int y = 0; y < tiles.height(); ++y) {
-					// Iterate over neighbors and average their heights
-					// Let's add weights later
 					float value = 0.0f;
 					float count = 0.0f;
-					for (int nx = x - scanWidth; nx <= x + scanWidth; ++nx) {
-						for(int ny = y - scanWidth; ny <= y + scanWidth; ++ny) {
+					for (int nx = x - kScanWidth; nx <= x + kScanWidth; ++nx) {
+						for(int ny = y - kScanWidth; ny <= y + kScanWidth; ++ny) {
 							if (nx >= 0 && nx < tiles.width() && ny >= 0 && ny < tiles.height()) {
 								float distance = std::sqrt((nx - x) * (nx - x) + (ny - y) * (ny - y));
 								float weight = (distance == 0 ? 2 : 1 / distance);
 
 								count += weight;
-								value += heightMap(nx, ny) * weight;
+								value += height_map(nx, ny) * weight;
 							}
 						}
 					}
@@ -76,7 +71,7 @@ namespace OpenKaiser {
 
 	export class WorldGenerator {
 	private:
-		bool tile_is_valid(const Tile& tile) {
+		bool TileIsValid(const Tile& tile) {
 			if (tile.type == TileType::Water) {
 				return false;
 			}
@@ -86,38 +81,34 @@ namespace OpenKaiser {
 			return true;
 		}
 
-		bool check_starting_location(std::shared_ptr<WorldState> state, std::pair<int, int> coords) {
+		bool CheckStartingLocation(std::shared_ptr<WorldState> state, std::pair<int, int> coords) {
 			Array2D<Tile>& tiles = state->tiles();
-			if (!tile_is_valid(tiles(coords.first, coords.second))) {
+			if (!TileIsValid(tiles(coords.first, coords.second))) {
 				return false;
 			}
-			// Left
-			if (coords.first > 0 && !tile_is_valid(tiles(coords.first - 1, coords.second))) {
+			if (coords.first > 0 && !TileIsValid(tiles(coords.first - 1, coords.second))) {
 				return false;
 			}
-			// Top
-			if (coords.second > 0 && !tile_is_valid(tiles(coords.first, coords.second - 1))) {
+			if (coords.second > 0 && !TileIsValid(tiles(coords.first, coords.second - 1))) {
 				return false;
 			}
-			// Right
-			if (coords.first < state->tiles().width() && !tile_is_valid(tiles(coords.first + 1, coords.second))) {
+			if (coords.first < state->tiles().width() && !TileIsValid(tiles(coords.first + 1, coords.second))) {
 				return false;
 			}
-			// Bottom
-			if (coords.second < state->tiles().height() && !tile_is_valid(tiles(coords.first, coords.second + 1))) {
+			if (coords.second < state->tiles().height() && !TileIsValid(tiles(coords.first, coords.second + 1))) {
 				return false;
 			}
 
 			return true;
 		}
 
-		std::pair<int, int> get_starting_location(std::shared_ptr<WorldState> state, std::mt19937& gen) {
+		std::pair<int, int> GetStartingLocation(std::shared_ptr<WorldState> state, std::mt19937& gen) {
 			std::uniform_int_distribution<int> x_dist(0, (int)state->tiles().width() - 1);
 			std::uniform_int_distribution<int> y_dist(0, (int)state->tiles().height() - 1);
 
 			auto coords = std::pair(x_dist(gen), y_dist(gen));
 			int count = 0;
-			while (!this->check_starting_location(state, coords)) {
+			while (!CheckStartingLocation(state, coords)) {
 				coords = std::pair(x_dist(gen), y_dist(gen));
 				count++;
 
@@ -129,21 +120,21 @@ namespace OpenKaiser {
 			return coords;
 		}
 
-		void generate_countries(std::shared_ptr<WorldState> state, int numCountries) {
+		void GenerateCountries(std::shared_ptr<WorldState> state, int num_countries) {
 			std::ifstream country_names("data/config/country_names.txt");
 			std::string line;
 
 			int count = 0;
-			while (std::getline(country_names, line) && count < numCountries) {
-				Country newCountry;
-				newCountry.id = count++;
-				newCountry.name = line;
-				state->countries().push_back(newCountry);
+			while (std::getline(country_names, line) && count < num_countries) {
+				Country new_country;
+				new_country.id = count++;
+				new_country.name = line;
+				state->countries().push_back(new_country);
 			}
 		}
 
-		void init_tile(Tile& tile, int countryId) {
-			tile.countryId = countryId;
+		void InitTile(Tile& tile, int country_id) {
+			tile.countryId = country_id;
 			if (tile.type == TileType::Grass) {
 				tile.building = BuildingType::Field;
 			} else if (tile.type == TileType::Mountain) {
@@ -152,43 +143,38 @@ namespace OpenKaiser {
 		}
 
 	public:
-		std::shared_ptr<WorldState> generate(const WorldConfig& config) {
+		std::shared_ptr<WorldState> Generate(const WorldConfig& config) {
 			std::shared_ptr<WorldState> state(new WorldState(config.width, config.height));
 			std::random_device rd;
 			std::mt19937 gen(rd());
 
-			// Generate seed
 			std::uniform_int_distribution<int> seed_dist;
 			int seed = seed_dist(gen);
 			gen.seed(seed);
 			std::cout << "Map seed: " << seed << std::endl;
-			state->setMapSeed(seed);
+			state->set_map_seed(seed);
 
-			// Generate map
-			FloatMapGenerator mapGen;
-			mapGen.generate(state, gen);
+			FloatMapGenerator map_gen;
+			map_gen.Generate(state, gen);
 
-			this->generate_countries(state, config.numCountries);
+			GenerateCountries(state, config.num_countries);
 
-			// Place countries
-			for (int i = 0; i < config.numCountries; i++) {
-				std::pair<int, int> coords = get_starting_location(state, gen);
-				
-				// Assign initial tiles
-				Tile& centerTile = state->tiles()(coords.first, coords.second);
-				centerTile.countryId = i;
-				centerTile.building = BuildingType::Castle;
+			for (int i = 0; i < config.num_countries; i++) {
+				std::pair<int, int> coords = GetStartingLocation(state, gen);
 
-				Tile& leftTile = state->tiles()(coords.first - 1, coords.second);
-				leftTile.countryId = i;
-				leftTile.building = BuildingType::Village;
-				leftTile.population = 100;
+				Tile& center_tile = state->tiles()(coords.first, coords.second);
+				center_tile.countryId = i;
+				center_tile.building = BuildingType::Castle;
 
-				this->init_tile(state->tiles()(coords.first, coords.second - 1), i);
-				this->init_tile(state->tiles()(coords.first + 1, coords.second), i);
-				this->init_tile(state->tiles()(coords.first, coords.second + 1), i);
+				Tile& left_tile = state->tiles()(coords.first - 1, coords.second);
+				left_tile.countryId = i;
+				left_tile.building = BuildingType::Village;
+				left_tile.population = 100;
 
-				// Set capital
+				InitTile(state->tiles()(coords.first, coords.second - 1), i);
+				InitTile(state->tiles()(coords.first + 1, coords.second), i);
+				InitTile(state->tiles()(coords.first, coords.second + 1), i);
+
 				state->countries()[i].capital = { coords.first, coords.second };
 			}
 			return state;

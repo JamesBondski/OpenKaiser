@@ -10,248 +10,242 @@ import GameController;
 namespace OpenKaiser {
 	export class UIElement {
 	protected:
-		sdl::FRect screenArea;
-		sdl::RendererPtr renderer;
-		std::shared_ptr<ResourceManager> resourceManager;
-		std::vector<std::shared_ptr<UIElement>> children;
-		std::shared_ptr<WorldState> state;
-		std::string id;
-		std::shared_ptr<GameController> controller;
-		bool fill = false;
+		sdl::FRect screen_area_;
+		sdl::RendererPtr renderer_;
+		std::shared_ptr<ResourceManager> resource_manager_;
+		std::vector<std::shared_ptr<UIElement>> children_;
+		std::shared_ptr<WorldState> state_;
+		std::string id_;
+		std::shared_ptr<GameController> controller_;
+		bool fill_ = false;
 
 	public:
-		virtual void set_screen_area(sdl::FRect& screenArea) {
-			this->screenArea = screenArea;
+		virtual void set_screen_area(sdl::FRect& screen_area) {
+				screen_area_ = screen_area;
 
-			if (this->children.size() == 1 && this->children[0]->get_fill()) {
-				sdl::FRect childArea{0, 0, this->screenArea.w, this->screenArea.h};
-				this->children[0]->set_screen_area(childArea);
+				if (children_.size() == 1 && children_[0]->fill()) {
+					sdl::FRect child_area{0, 0, screen_area_.w, screen_area_.h};
+					children_[0]->set_screen_area(child_area);
+				}
 			}
-		}
 
-		sdl::FRect& get_screen_area() {
-			return this->screenArea;
-		}
+		sdl::FRect& screen_area() {
+				return screen_area_;
+			}
 
-		sdl::FRect get_offset_area(sdl::Point& offset) {
-			return sdl::FRect{this->screenArea.x + offset.x, this->screenArea.y + offset.y, this->screenArea.w, this->screenArea.h};
+		sdl::FRect GetOffsetArea(sdl::Point& offset) {
+			return sdl::FRect{screen_area_.x + offset.x, screen_area_.y + offset.y, screen_area_.w, screen_area_.h};
 		}
 
 		void set_fill(bool value) {
-			this->fill = value;
-		}
+				fill_ = value;
+			}
 
-		bool get_fill() {
-			return this->fill;
-		}
+		bool fill() const {
+				return fill_;
+			}
 
 		void set_world_state(std::shared_ptr<WorldState>& state) {
-			this->state = state;
-			for (auto element : children) {
-				element->set_world_state(state);
+				state_ = state;
+				for (auto element : children_) {
+					element->set_world_state(state);
+				}
 			}
-		}
 
 		void set_id(const std::string& id) {
-			this->id = id;
+				id_ = id;
+			}
+
+		std::string& id() {
+				return id_;
+			}
+
+		template <typename T> void AddChild(std::shared_ptr<T>& element) {
+			element->Init(renderer_, resource_manager_, state_, controller_);
+			children_.push_back(element);
 		}
 
-		std::string& get_id() {
-			return this->id;
+		virtual void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) {
+			renderer_ = renderer;
+			resource_manager_ = resources;
+			state_ = state;
+			controller_ = controller;
 		}
 
-		template <typename T> void add_child(std::shared_ptr<T>& element) {
-			element->init(this->renderer, this->resourceManager, this->state, this->controller);
-			this->children.push_back(element);
-		}
-
-		virtual void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) {
-			this->renderer = renderer;
-			this->resourceManager = resources;
-			this->state = state;
-			this->controller = controller;
-		}
-
-		virtual void update(float passedTime) {
-			for (auto element : children) {
-				element->update(passedTime);
+		virtual void Update(float passed_time) {
+			for (auto element : children_) {
+				element->Update(passed_time);
 			}
 		}
 
-		virtual void draw(sdl::Point& offset) {
-			sdl::Point newOffset{ offset.x + this->screenArea.x, offset.y + this->screenArea.y };
-			for (auto element : children) {
-				sdl::Rect clipRect{ newOffset.x + element->get_screen_area().x, newOffset.y + element->get_screen_area().y, element->get_screen_area().w, element->get_screen_area().h };
-				sdl::set_render_clip_rect(this->renderer, &clipRect);
-				element->draw(newOffset);
-				sdl::set_render_clip_rect(this->renderer, nullptr);
+		virtual void Draw(sdl::Point& offset) {
+				sdl::Point new_offset{ offset.x + screen_area_.x, offset.y + screen_area_.y };
+				for (auto element : children_) {
+					sdl::Rect clip_rect{ new_offset.x + element->screen_area().x, new_offset.y + element->screen_area().y, element->screen_area().w, element->screen_area().h };
+					sdl::set_render_clip_rect(renderer_, &clip_rect);
+					element->Draw(new_offset);
+					sdl::set_render_clip_rect(renderer_, nullptr);
+				}
 			}
-		}
-		virtual void handle_event(sdl::Event& event) {
-			for (auto element : children) {
-				element->handle_event(event);
+		virtual void HandleEvent(sdl::Event& event) {
+			for (auto element : children_) {
+				element->HandleEvent(event);
 			}
 		};
 	};
 
 	export class Padding : public UIElement {
 	private:
-		float padAmount;
+		float pad_amount_;
 
 	public:
-		void set_screen_area(sdl::FRect& screenArea) override {
-			UIElement::set_screen_area(screenArea);
+		void set_screen_area(sdl::FRect& screen_area) override {
+				UIElement::set_screen_area(screen_area);
 
-			if (this->children.size() > 1) {
-				throw OpenKaiserError("Padding can only hold 1 element.");
+				if (children_.size() > 1) {
+					throw OpenKaiserError("Padding can only hold 1 element.");
+				}
+
+				if (children_.size() == 0) {
+					return;
+				}
+
+				std::shared_ptr<UIElement>& child = children_[0];
+				if (child->fill()) {
+					throw OpenKaiserError("Elements within padding should not be set to fill.");
+				}
+
+				sdl::FRect child_area{pad_amount_, pad_amount_, screen_area_.w - 2 * pad_amount_, screen_area_.h - 2 * pad_amount_};
+				child->set_screen_area(child_area);
 			}
 
-			if (this->children.size() == 0) {
-				return;
+		float pad_amount() const {
+				return pad_amount_;
 			}
 
-			std::shared_ptr<UIElement>& child = this->children[0];
-			if (child->get_fill()) {
-				throw OpenKaiserError("Elements within padding should not be set to fill.");
+		void set_pad_amount(float new_amount) {
+				pad_amount_ = new_amount;
 			}
-
-			sdl::FRect childArea{this->padAmount, this->padAmount, this->screenArea.w - 2 * this->padAmount, this->screenArea.h - 2 * this->padAmount};
-			child->set_screen_area(childArea);
-		}
-
-		float get_pad_amount() {
-			return this->padAmount;
-		}
-
-		void set_pad_amount(float newAmount) {
-			this->padAmount = newAmount;
-		}
 	};
 
 	export class VerticalStack : public UIElement {
 	private:
 	public:
-		void set_screen_area(sdl::FRect& screenArea) override {
-			UIElement::set_screen_area(screenArea);
+		void set_screen_area(sdl::FRect& screen_area) override {
+				UIElement::set_screen_area(screen_area);
 
-			// Start with our top left and keep the width. Height will be taken from the child elements.
-			sdl::FRect childArea = {0, 0, this->screenArea.w, 0};
-			for (std::shared_ptr<UIElement>& child : this->children) {
-				// Keep width of
-				childArea.h = child->get_screen_area().h;
-				child->set_screen_area(childArea);
+				sdl::FRect child_area = {0, 0, screen_area_.w, 0};
+				for (std::shared_ptr<UIElement>& child : children_) {
+					child_area.h = child->screen_area().h;
+					child->set_screen_area(child_area);
 
-				childArea.y += childArea.h;
+					child_area.y += child_area.h;
+				}
 			}
-		}
 	};
 
 	export class TextElement : public UIElement {
 	private:
-		sdl::Color color;
-		std::string text;
-		float size;
-		bool centered;
+		sdl::Color color_;
+		std::string text_;
+		float size_;
+		bool centered_;
 
 	public:
 		TextElement(const std::string& text, float size, const sdl::Color& color, bool centered = false)
-			: text(text), size(size), color(color), centered(centered) {
+			: text_(text), size_(size), color_(color), centered_(centered) {
 		}
 
-		void draw(sdl::Point& offset) override {
-			auto texture = this->resourceManager->get_text(this->text, this->size, this->color);
-			if (this->centered) {
-				sdl::FPoint middle{ offset.x + this->screenArea.x + this->screenArea.w / 2, offset.y + this->screenArea.y + this->screenArea.h / 2 };
-				sdl::render_texture_centered(this->renderer, texture, middle);
+		void Draw(sdl::Point& offset) override {
+				auto texture = resource_manager_->get_text(text_, size_, color_.r, color_.g, color_.b);
+				if (centered_) {
+					sdl::FPoint middle{ offset.x + screen_area_.x + screen_area_.w / 2, offset.y + screen_area_.y + screen_area_.h / 2 };
+					sdl::render_texture_centered(renderer_, texture, middle);
+				}
+				else {
+					sdl::FRect output_area{ offset.x + screen_area_.x, offset.y + screen_area_.y, texture->w, texture->h };
+					sdl::render_texture(renderer_, texture, output_area);
+				}
 			}
-			else {
-				sdl::FRect outputArea{ offset.x + this->screenArea.x, offset.y + this->screenArea.y, texture->w, texture->h };
-				sdl::render_texture(this->renderer, texture, outputArea);
-			}
-		}
 
 		void set_color(const sdl::Color& color) {
-			this->color = color;
-		}
+				color_ = color;
+			}
 
-		sdl::Color& get_color() {
-			return this->color;
-		}
+		sdl::Color& color() {
+				return color_;
+			}
 
 		void set_text(const std::string& text) {
-			this->text = text;
-		}
+				text_ = text;
+			}
 
-		std::string& get_text() {
-			return this->text;
-		}
+		std::string& text() {
+				return text_;
+			}
 
 		void set_size(float size) {
-			this->size = size;
-		}
+				size_ = size;
+			}
 
-		float get_size() {
-			return this->size;
-		}
+		float size() const {
+				return size_;
+			}
 
 		void set_centered(bool centered) {
-			this->centered = centered;
-		}
+				centered_ = centered;
+			}
 
-		bool is_centered() {
-			return this->centered;
+		bool IsCentered() const {
+			return centered_;
 		}
 
 	};
 
 	export class DynamicTextElement : public TextElement {
 	private:
-		std::function<std::string()> textGetter;
+		std::function<std::string()> text_getter_;
 	public:
-		DynamicTextElement(std::function<std::string()>& textGetter, float size, const sdl::Color& color, bool centered = false)
+		DynamicTextElement(std::function<std::string()>& text_getter, float size, const sdl::Color& color, bool centered = false)
 			: TextElement("", size, color, centered) {
-			this->textGetter = textGetter;
+			text_getter_ = text_getter;
 		}
 
-		void draw(sdl::Point& offset) override {
-			this->set_text(textGetter());
-			TextElement::draw(offset);
-		}
+		void Draw(sdl::Point& offset) override {
+				set_text(text_getter_());
+				TextElement::Draw(offset);
+			}
 	};
 
 	export class GameState : public UIElement {
 	protected:
-		std::string nextState;
+		std::string next_state_;
 
-		void fill_screen() {
-
-		}
 	public:
 
-		std::string& get_next_state() {
-			return nextState;
-		}
-
-		void set_next_state(const std::string& stateName) {
-			nextState = stateName;
-		}
-
-		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
-			UIElement::init(renderer, resources, state, controller);
-
-			// Set screen area to whole screen
-			int width, height;
-			sdl::get_current_render_output_size(renderer, &width, &height);
-			sdl::FRect ownArea{ 0, 0, width, height };
-			this->set_screen_area(ownArea);
-		}
-
-		void handle_event(sdl::Event& event) override {
-			if (event.type == sdl::EventType::WindowResized) {
-				sdl::FRect ownArea{ 0, 0, event.window.data1, event.window.data2 };
-				this->set_screen_area(ownArea);
+		std::string& next_state() {
+				return next_state_;
 			}
-			UIElement::handle_event(event);
-		}
+
+		void set_next_state(const std::string& state_name) {
+				next_state_ = state_name;
+			}
+
+		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
+				UIElement::Init(renderer, resources, state, controller);
+
+				int width, height;
+				sdl::get_current_render_output_size(renderer, &width, &height);
+				sdl::FRect own_area{ 0, 0, width, height };
+				set_screen_area(own_area);
+			}
+
+		void HandleEvent(sdl::Event& event) override {
+				if (event.type == sdl::EventType::WindowResized) {
+					sdl::FRect own_area{ 0, 0, event.window.data1, event.window.data2 };
+					set_screen_area(own_area);
+				}
+				UIElement::HandleEvent(event);
+			}
 	};
 }

@@ -24,91 +24,91 @@ namespace OpenKaiser {
 
 	export class MenuManager : public UIElement {
 	private:
-		std::shared_ptr<MenuItem> rootItem;
-		std::shared_ptr<MenuItem> currentItem;
+		std::shared_ptr<MenuItem> root_item_;
+		std::shared_ptr<MenuItem> current_item_;
 
-		float padding = 15;
-		float itemWidth = 0;
-		float itemHeight = 0;
+		float padding_ = 15;
+		float item_width_ = 0;
+		float item_height_ = 0;
 
-		int numColumns = 3;
-		int numRows = 4;
+		int num_columns_ = 3;
+		int num_rows_ = 4;
 
-		sdl::Color buttonColor = { 45, 52, 64, 255 };
-		sdl::Color textColor = { 245, 245, 245, 255 };
+		sdl::Color button_color_ = { 45, 52, 64, 255 };
+		sdl::Color text_color_ = { 245, 245, 245, 255 };
 	public:
 		MenuManager() {
-			this->rootItem = std::make_shared<MenuItem>();
-			this->currentItem = this->rootItem;
+			root_item_ = std::make_shared<MenuItem>();
+			current_item_ = root_item_;
 		}
 
-		std::shared_ptr<MenuItem> getItemByName(const std::string& name) {
-			std::stack<std::shared_ptr<MenuItem>> searchList;
-			searchList.push(this->rootItem);
+		std::shared_ptr<MenuItem> get_item_by_name(const std::string& name) {
+				std::stack<std::shared_ptr<MenuItem>> search_list;
+				search_list.push(root_item_);
 
-			while (!searchList.empty()) {
-				std::shared_ptr<MenuItem>& item = searchList.top();
-				searchList.pop();
+				while (!search_list.empty()) {
+					std::shared_ptr<MenuItem>& item = search_list.top();
+					search_list.pop();
 
-				if (item->name == name) {
-					return item;
+					if (item->name == name) {
+						return item;
+					}
+
+					for (auto& child_item : item->childItems) {
+						search_list.push(child_item);
+					}
 				}
-				
-				for (auto& childItem : item->childItems) {
-					searchList.push(childItem);
-				}
+				return nullptr;
 			}
-			return nullptr;
-		}
 
-		std::shared_ptr<MenuItem>& getRootItem() {
-			return this->rootItem;
-		}
+		std::shared_ptr<MenuItem>& get_root_item() {
+				return root_item_;
+			}
 
-		void set_screen_area(sdl::FRect& screenArea) override {
-			UIElement::set_screen_area(screenArea);
+		void set_screen_area(sdl::FRect& screen_area) override {
+				UIElement::set_screen_area(screen_area);
 
-			this->itemHeight = (screenArea.h - (numRows + 1) * padding) / numRows;
-			this->itemWidth = (screenArea.w - (numColumns + 1) * padding) / this->numColumns;
-		}
+				item_height_ = (screen_area.h - (num_rows_ + 1) * padding_) / num_rows_;
+				item_width_ = (screen_area.w - (num_columns_ + 1) * padding_) / num_columns_;
+			}
 
 
 		void add_item(std::shared_ptr<MenuItem>& parent, std::shared_ptr<MenuItem>& child) {
-			parent->childItems.push_back(child);
-			child->parent = parent.get();
-		}
+				parent->childItems.push_back(child);
+				child->parent = parent.get();
+			}
 
-		void draw(sdl::Point& offset) override {
-			sdl::set_render_draw_color(this->renderer, this->buttonColor);
+		void Draw(sdl::Point& offset) override {
+			sdl::set_render_draw_color(renderer_, button_color_);
 
-			int itemCount = 0;
-			for (int col = 0; col < this->numColumns; col++) {
-				for (int row = 0; row < this->numRows; row++) {
-					if (itemCount < this->currentItem->childItems.size()) {
-						auto item = this->currentItem->childItems[itemCount];
-						sdl::FRect itemArea{
-							offset.x + this->screenArea.x + this->padding + (this->padding + this->itemWidth) * col,
-							offset.y + this->screenArea.y + this->padding + (this->padding + this->itemHeight) * row,
-							this->itemWidth,
-							this->itemHeight
+			int item_count = 0;
+			for (int col = 0; col < num_columns_; col++) {
+				for (int row = 0; row < num_rows_; row++) {
+					if (item_count < current_item_->childItems.size()) {
+						auto item = current_item_->childItems[item_count];
+						sdl::FRect item_area{
+							offset.x + screen_area_.x + padding_ + (padding_ + item_width_) * col,
+							offset.y + screen_area_.y + padding_ + (padding_ + item_height_) * row,
+							item_width_,
+							item_height_
 						};
-						sdl::render_fill_rect(this->renderer, itemArea);
+						sdl::render_fill_rect(renderer_, item_area);
 
-						auto texture = this->resourceManager->get_text(item->text, 16, this->textColor.r, this->textColor.g, this->textColor.b);
-						sdl::FPoint mid = { itemArea.x + itemArea.w / 2, itemArea.y + itemArea.h / 2 };
-						sdl::render_texture_centered(this->renderer, texture, mid);
-						itemCount++;
+						auto texture = resource_manager_->get_text(item->text, 16, text_color_.r, text_color_.g, text_color_.b);
+						sdl::FPoint mid = { item_area.x + item_area.w / 2, item_area.y + item_area.h / 2 };
+						sdl::render_texture_centered(renderer_, texture, mid);
+						item_count++;
 					}
 				}
 			}
 		}
-		void handle_event(sdl::Event& event) override {
+		void HandleEvent(sdl::Event& event) override {
 			if (event.type == sdl::EventType::KeyDown) {
-				for (auto child : this->currentItem->childItems) {
+				for (auto child : current_item_->childItems) {
 					if (event.key.key == child->hotkey) {
 						auto result = child->callback(child->name);
 						if (result == ResultAction::Back) {
-							this->currentItem = this->getItemByName(this->currentItem->parent->name);
+							current_item_ = get_item_by_name(current_item_->parent->name);
 						}
 					}
 				}

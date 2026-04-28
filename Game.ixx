@@ -16,32 +16,32 @@ namespace OpenKaiser {
 
 	export class Game {
 	private:
-		std::shared_ptr<GameController> controller;
-		std::string currentState;
-		std::unordered_map<std::string, std::unique_ptr<GameState>> states;
-		std::shared_ptr<ResourceManager> resourceManager;
-		MapRenderer mapRenderer;
+		std::shared_ptr<GameController> controller_;
+		std::string current_state_;
+		std::unordered_map<std::string, std::unique_ptr<GameState>> states_;
+		std::shared_ptr<ResourceManager> resource_manager_;
+		MapRenderer map_renderer_;
 
-		sdl::WindowPtr window;
-		sdl::RendererPtr renderer;
+		sdl::WindowPtr window_;
+		sdl::RendererPtr renderer_;
 
-		int width = 1280;
-		int height = 800;
+		int width_ = 1280;
+		int height_ = 800;
 
-		std::shared_ptr<WorldState> world;
-		std::uint64_t lastUpdate = 0;
+		std::shared_ptr<WorldState> world_;
+		std::uint64_t last_update_ = 0;
 
-		std::unique_ptr<GameState>& state() {
-			return states[this->currentState];
+		std::unique_ptr<GameState>& State() {
+			return states_[current_state_];
 		}
 
-		bool update() {
-			if (lastUpdate = 0) {
-				lastUpdate = sdl::get_performance_counter();
+		bool Update() {
+			if (last_update_ = 0) {
+				last_update_ = sdl::get_performance_counter();
 			}
 			std::uint64_t now = sdl::get_performance_counter();
-			float diff = (lastUpdate - now) / (float)sdl::get_performance_frequency() * 1000;
-			lastUpdate = now;
+			float diff = (last_update_ - now) / (float)sdl::get_performance_frequency() * 1000;
+			last_update_ = now;
 
 			sdl::Event event;
 			while (sdl::poll_event(event)) {
@@ -49,76 +49,75 @@ namespace OpenKaiser {
 					std::cout << "Quitting...\n";
 					return false;
 				}
-				this->state()->handle_event(event);
+				State()->HandleEvent(event);
 			}
 
-			this->state()->update(diff);
+			State()->Update(diff);
 
-			std::string nextState = this->state()->get_next_state();
-			if (nextState == "quit") {
+			std::string next_state = State()->next_state();
+			if (next_state == "quit") {
 				return false;
 			}
 
-			if (!nextState.empty()) {
-				this->state()->set_next_state("");
-				this->currentState = this->state()->get_next_state();
+			if (!next_state.empty()) {
+				State()->set_next_state("");
+				current_state_ = State()->next_state();
 			}
 
 			return true;
 		}
 
-		void draw() {
-			sdl::set_render_draw_color(this->renderer, { 11, 11, 11, 255 });
-			sdl::render_clear(this->renderer);
+		void Draw() {
+			sdl::set_render_draw_color(renderer_, { 11, 11, 11, 255 });
+			sdl::render_clear(renderer_);
 
-			sdl::Point rootOffset{ 0,0 };
-			this->state()->draw(rootOffset);
+			sdl::Point root_offset{ 0,0 };
+			State()->Draw(root_offset);
 
-			sdl::render_present(renderer);
+			sdl::render_present(renderer_);
 		}
 
 		template <typename T> 
 			requires std::derived_from<T, GameState> && std::is_default_constructible_v<T>
-		void add_gamestate(const std::string& name) {
-			T* newState = new T();
-			this->states.insert(std::pair<std::string, std::unique_ptr<GameState>>(name, std::unique_ptr<GameState>(newState)));
-			newState->init(this->renderer, this->resourceManager, this->world, this->controller);
+		void AddGameState(const std::string& name) {
+			T* new_state = new T();
+			states_.insert(std::pair<std::string, std::unique_ptr<GameState>>(name, std::unique_ptr<GameState>(new_state)));
+			new_state->Init(renderer_, resource_manager_, world_, controller_);
 		}
 
 	public:
-		void init() {
+		void Init() {
 			std::cout << "Initializing World...\n";
-			this->world = WorldGenerator().generate(WorldConfig());
-			this->world->save("save/init.txt");
+			world_ = WorldGenerator().Generate(WorldConfig());
+			world_->Save("save/init.txt");
 
-			this->controller = std::make_shared<GameController>();
-			this->controller->init(this->world);
+			controller_ = std::make_shared<GameController>();
+			controller_->Init(world_);
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();
-			this->window = sdl::create_window("OpenKaiser", this->width, this->height, 0x20); // 0x20=Resizable
-			this->renderer = sdl::create_renderer(this->window.get());
+			window_ = sdl::create_window("OpenKaiser", width_, height_, 0x20);
+			renderer_ = sdl::create_renderer(window_.get());
 
 			sdl::ttf_init();
 
 			std::cout << "Initializung UI...\n";
-			this->resourceManager.reset(new ResourceManager());
-			this->resourceManager->init(this->renderer);
+			resource_manager_.reset(new ResourceManager());
+			resource_manager_->Init(renderer_);
 
-			// Initialize GameStates
-			this->add_gamestate<MainState>("main");
-			this->currentState = "main";
+			AddGameState<MainState>("main");
+			current_state_ = "main";
 		}
 
-		void run() {
+		void Run() {
 			std::cout << "Running...\n";
 			try {
-				while (this->update()) {
-					this->draw();
+				while (Update()) {
+					Draw();
 				}
 			}
 			catch (const sdl::sdl_error& e) {
-				this->world->save("save/crash.txt");
+				world_->Save("save/crash.txt");
 				throw;
 			}
 		}
