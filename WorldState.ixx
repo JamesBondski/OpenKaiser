@@ -62,6 +62,7 @@ export namespace OpenKaiser {
 		int mapSeed;
 		std::vector<Country> countries_;
 		std::int16_t currentCountryId = 0;
+		int year = 1000;
 
 	public:
 		WorldState(size_t width, size_t height) : _tiles(width, height) {
@@ -90,6 +91,14 @@ export namespace OpenKaiser {
 			this->mapSeed = value;
 		}
 
+		int getYear() {
+			return this->year;
+		}
+
+		int nextYear() {
+			return ++this->year;
+		}
+
 		std::int16_t nextPlayer() {
 			this->currentCountryId++;
 			if (this->currentCountryId >= countries_.size()) {
@@ -101,6 +110,7 @@ export namespace OpenKaiser {
 		void save(const std::string& path) {
 			std::ofstream save_file(path);
 			save_file << this->mapSeed << std::endl;
+			save_file << this->year << std::endl;
 			save_file << this->countries_.size() << std::endl;
 			for (Country& country : this->countries_) {
 				save_file << country.id << " " << country.name << " " << country.capital.x << " " << country.capital.y << std::endl;
@@ -115,9 +125,10 @@ export namespace OpenKaiser {
 		void load(const std::string& path) {
 			std::ifstream save_file(path);
 			save_file >> this->mapSeed;
+			save_file >> this->year;
+
 			int numCountries;
 			save_file >> numCountries;
-
 			for (int i = 0; i < numCountries; i++) {
 				Country country;
 				int x, y;

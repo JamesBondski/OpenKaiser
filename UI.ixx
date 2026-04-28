@@ -165,7 +165,7 @@ namespace OpenKaiser {
 				sdl::render_texture_centered(this->renderer, texture, middle);
 			}
 			else {
-				sdl::FRect outputArea{ offset.x + this->screenArea.x, offset.y + this->screenArea.y, this->screenArea.w, this->screenArea.h };
+				sdl::FRect outputArea{ offset.x + this->screenArea.x, offset.y + this->screenArea.y, texture->w, texture->h };
 				sdl::render_texture(this->renderer, texture, outputArea);
 			}
 		}

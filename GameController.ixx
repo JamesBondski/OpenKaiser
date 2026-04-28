@@ -15,6 +15,7 @@ namespace OpenKaiser {
 		void Execute(std::shared_ptr<WorldState>& world) {
 			if (world->nextPlayer() == 0) {
 				// End Round
+				world->nextYear();
 			}
 		}
 	};

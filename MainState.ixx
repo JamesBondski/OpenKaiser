@@ -62,7 +62,6 @@ namespace OpenKaiser {
 	export class SideBar : public UIElement {
 	private:
 		std::shared_ptr<MiniMap> miniMap;
-		std::shared_ptr<DynamicTextElement> currentPlayerText;
 		std::shared_ptr<VerticalStack> stack;
 		std::shared_ptr<Padding> padding;
 
@@ -82,10 +81,15 @@ namespace OpenKaiser {
 			this->stack->add_child(this->miniMap);
 
 			sdl::Color textColor{ 255, 255, 255, 255 };
-			std::function<std::string()> textGetter = [this]() { return this->state->countries()[this->state->get_current_country_id()].name; };
-			this->currentPlayerText = std::make_shared<DynamicTextElement>(textGetter, (float)12, textColor, true);
-			this->currentPlayerText->get_screen_area().h = 30;
-			this->stack->add_child(this->currentPlayerText);
+			std::function<std::string()> textGetter = [this]() { return "Country: " + this->state->countries()[this->state->get_current_country_id()].name; };
+			std::shared_ptr<DynamicTextElement> currentPlayerText = std::make_shared<DynamicTextElement>(textGetter, (float)14, textColor, false);
+			currentPlayerText->get_screen_area().h = 25;
+			this->stack->add_child(currentPlayerText);
+
+			textGetter = [this]() { return "Year: " + std::to_string(this->state->getYear()); };
+			std::shared_ptr<DynamicTextElement> currentYearText = std::make_shared<DynamicTextElement>(textGetter, (float)14, textColor, false);
+			currentYearText->get_screen_area().h = 25;
+			this->stack->add_child(currentYearText);
 
 			this->set_screen_area(this->screenArea);
 		}
