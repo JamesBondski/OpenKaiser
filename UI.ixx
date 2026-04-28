@@ -94,6 +94,40 @@ namespace OpenKaiser {
 		};
 	};
 
+	export class Padding : public UIElement {
+	private:
+		float padAmount;
+
+	public:
+		void set_screen_area(sdl::FRect& screenArea) override {
+			UIElement::set_screen_area(screenArea);
+
+			if (this->children.size() > 1) {
+				throw OpenKaiserError("Padding can only hold 1 element.");
+			}
+
+			if (this->children.size() == 0) {
+				return;
+			}
+
+			std::shared_ptr<UIElement>& child = this->children[0];
+			if (child->get_fill()) {
+				throw OpenKaiserError("Elements within padding should not be set to fill.");
+			}
+
+			sdl::FRect childArea{this->padAmount, this->padAmount, this->screenArea.w - 2 * this->padAmount, this->screenArea.h - 2 * this->padAmount};
+			child->set_screen_area(childArea);
+		}
+
+		float get_pad_amount() {
+			return this->padAmount;
+		}
+
+		void set_pad_amount(float newAmount) {
+			this->padAmount = newAmount;
+		}
+	};
+
 	export class VerticalStack : public UIElement {
 	private:
 	public:

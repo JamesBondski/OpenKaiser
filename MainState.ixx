@@ -64,15 +64,19 @@ namespace OpenKaiser {
 		std::shared_ptr<MiniMap> miniMap;
 		std::shared_ptr<DynamicTextElement> currentPlayerText;
 		std::shared_ptr<VerticalStack> stack;
-		const float padding = 5;
+		std::shared_ptr<Padding> padding;
 
 	public:
 		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			UIElement::init(renderer, resources, state, controller);
 
+			this->padding = std::make_shared<Padding>();
+			this->padding->set_pad_amount(5);
+			this->padding->set_fill(true);
+			this->add_child(this->padding);
+
 			this->stack = std::make_shared<VerticalStack>();
-			this->stack->set_fill(true);
-			this->add_child(this->stack);
+			this->padding->add_child(this->stack);
 
 			this->miniMap = std::make_shared<MiniMap>();
 			this->stack->add_child(this->miniMap);
