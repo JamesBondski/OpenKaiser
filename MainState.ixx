@@ -90,6 +90,11 @@ namespace OpenKaiser {
 			current_year_text->screen_area().h = 25;
 			stack_->AddChild(current_year_text);
 
+			text_getter = [this]() { return "Gold: " + std::to_string(state_->countries()[state_->current_country_id()].gold); };
+			std::shared_ptr<DynamicTextElement> gold_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
+			gold_text->screen_area().h = 25;
+			stack_->AddChild(gold_text);
+
 			set_screen_area(screen_area_);
 		}
 

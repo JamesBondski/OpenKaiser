@@ -129,6 +129,7 @@ namespace OpenKaiser {
 				Country new_country;
 				new_country.id = count++;
 				new_country.name = line;
+				new_country.gold = 1000;
 				state->countries().push_back(new_country);
 			}
 		}

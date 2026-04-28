@@ -29,6 +29,7 @@ export namespace OpenKaiser {
 
 	export struct Country {
 		std::int16_t id;
+		std::int16_t gold = 0;
 		std::string name;
 		sdl::Point capital;
 	};
