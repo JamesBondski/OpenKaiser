@@ -17,10 +17,16 @@ namespace OpenKaiser {
 		std::shared_ptr<WorldState> state;
 		std::string id;
 		std::shared_ptr<GameController> controller;
+		bool fill = false;
 
 	public:
 		virtual void set_screen_area(sdl::FRect& screenArea) {
 			this->screenArea = screenArea;
+
+			if (this->children.size() == 1 && this->children[0]->get_fill()) {
+				sdl::FRect childArea{0, 0, this->screenArea.w, this->screenArea.h};
+				this->children[0]->set_screen_area(childArea);
+			}
 		}
 
 		sdl::FRect& get_screen_area() {
@@ -29,6 +35,14 @@ namespace OpenKaiser {
 
 		sdl::FRect get_offset_area(sdl::Point& offset) {
 			return sdl::FRect{this->screenArea.x + offset.x, this->screenArea.y + offset.y, this->screenArea.w, this->screenArea.h};
+		}
+
+		void set_fill(bool value) {
+			this->fill = value;
+		}
+
+		bool get_fill() {
+			return this->fill;
 		}
 
 		void set_world_state(std::shared_ptr<WorldState>& state) {

@@ -71,6 +71,7 @@ namespace OpenKaiser {
 			UIElement::init(renderer, resources, state, controller);
 
 			this->stack = std::make_shared<VerticalStack>();
+			this->stack->set_fill(true);
 			this->add_child(this->stack);
 
 			this->miniMap = std::make_shared<MiniMap>();
@@ -86,12 +87,13 @@ namespace OpenKaiser {
 		}
 
 		void set_screen_area(sdl::FRect& screenArea) override {
+			if (this->miniMap->get_screen_area().h != screenArea.w) {
+				sdl::FRect newHeight = this->miniMap->get_screen_area();
+				newHeight.h = screenArea.w;
+				this->miniMap->set_screen_area(newHeight);
+			}
+
 			UIElement::set_screen_area(screenArea);
-
-			this->miniMap->get_screen_area().h = this->screenArea.w;
-
-			sdl::FRect stackArea{ 0, 0, this->screenArea.w, this->screenArea.h };
-			this->stack->set_screen_area(stackArea);
 		}
 	};
 
