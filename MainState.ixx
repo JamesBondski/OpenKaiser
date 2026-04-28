@@ -10,11 +10,58 @@ import ResourceManager;
 import WorldState;
 import GameController;
 import Menu;
+import Config;
 
 namespace OpenKaiser {
+	export class MiniMap : public UIElement {
+	private:
+		int last_history_count = -1;
+		sdl::TexturePtr texture;
+		std::unordered_map<TileType, sdl::Color> tileColors;
+		std::vector<sdl::Color> countryColors;
+
+		void redraw() {
+			Array2D<Tile>& tiles = this->state->tiles();
+			sdl::SurfacePtr surface = sdl::create_surface(tiles.width(), tiles.height(), sdl::PixelFormat::SDL_PIXELFORMAT_RGBA32);
+
+			std::uint32_t* pixels = static_cast<std::uint32_t*>(surface->pixels);
+			for (int x = 0; x < tiles.width(); x++) {
+				for (int y = 0; y < tiles.height(); y++) {
+					Tile& tile = tiles(x, y);
+					sdl::Color color = this->tileColors[tile.type];
+
+					if (tile.countryId >= 0) {
+						color = countryColors[tile.countryId];
+					}
+					
+					pixels[y * tiles.width() + x] = *reinterpret_cast<int*>(&color);
+				}
+			}
+			texture = sdl::create_texture_from_surface(this->renderer, surface);
+			sdl::set_texture_scale_mode(texture, sdl::ScaleMode::SDL_SCALEMODE_NEAREST);
+		}
+	public:
+		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resourceManager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
+			UIElement::init(renderer, resourceManager, state, controller);
+
+			this->tileColors = Config::load_tile_colors();
+			this->countryColors = Config::load_country_colors();
+		}
+
+		void draw(sdl::Point& offset) override {
+			// If any commands have been executed in the meantime, redraw the mini map.
+			if (this->controller->get_history_size() != this->last_history_count) {
+				this->redraw();
+			}
+
+			sdl::FRect outputArea = this->get_offset_area(offset);
+			sdl::render_texture(this->renderer, this->texture, outputArea);
+		}
+	};
+
 	export class SideBar : public UIElement {
 	private:
-		std::shared_ptr<MapRenderer> miniMap;
+		std::shared_ptr<MiniMap> miniMap;
 		std::shared_ptr<DynamicTextElement> currentPlayerText;
 		const float padding = 5;
 
@@ -22,13 +69,10 @@ namespace OpenKaiser {
 		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			UIElement::init(renderer, resources, state, controller);
 
-			this->miniMap = std::make_shared<MapRenderer>();
+			this->miniMap = std::make_shared<MiniMap>();
 			this->add_child(this->miniMap);
-			this->miniMap->set_render_mode(RenderMode::Rect);
-			this->miniMap->set_scrollable(false);
-			this->miniMap->hide_names();
 
-			SDL_Color textColor{ 255, 255, 255, 255 };
+			sdl::Color textColor{ 255, 255, 255, 255 };
 			std::function<std::string()> textGetter = [this]() { return this->state->countries()[this->state->get_current_country_id()].name; };
 			this->currentPlayerText = std::make_shared<DynamicTextElement>(textGetter, (float)12, textColor, true);
 			this->add_child(this->currentPlayerText);
@@ -41,9 +85,7 @@ namespace OpenKaiser {
 
 			if (this->miniMap) {
 				sdl::FRect mapArea(this->padding, this->padding, this->screenArea.w - 2 * this->padding, this->screenArea.w - 2 * this->padding);
-				sdl::FPoint tileSize{ (float)(this->screenArea.w - 2 * this->padding) / this->state->tiles().width() , ((float)this->screenArea.h - 2 * this->padding) / this->state->tiles().height() };
 				this->miniMap->set_screen_area(mapArea);
-				this->miniMap->set_tile_size(std::min(tileSize.x, tileSize.y));
 
 				sdl::FRect currentPlayerTextArea{ 0, mapArea.y + mapArea.h, this->screenArea.w, 20 };
 				this->currentPlayerText->set_screen_area(currentPlayerTextArea);
@@ -96,7 +138,7 @@ namespace OpenKaiser {
 
 			if (this->mapRenderer && this->menu) {
 				const int menuHeight = 200;
-				const int sideBarWidth = 200;
+				const int sideBarWidth = 260;
 
 				sdl::FRect mapArea(0, 0, this->screenArea.w - sideBarWidth, this->screenArea.h - menuHeight);
 				this->mapRenderer->set_screen_area(mapArea);

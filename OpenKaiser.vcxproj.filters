@@ -16,5 +16,6 @@
     <ClCompile Include="Menu.ixx" />
     <ClCompile Include="GameController.ixx" />
     <ClCompile Include="MainState.ixx" />
+    <ClCompile Include="Config.ixx" />
   </ItemGroup>
 </Project>

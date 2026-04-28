@@ -6,6 +6,7 @@ import std;
 import General;
 import ResourceManager;
 import UI;
+import Config;
 
 using std::uint8_t;
 
@@ -21,6 +22,7 @@ namespace OpenKaiser {
 		std::vector<sdl::Color> country_colors;
 		std::unordered_map<TileType, sdl::TexturePtr> tileTextures;
 		std::unordered_map<BuildingType, sdl::TexturePtr> buildingTextures;
+		std::unordered_map<TileType, sdl::Color> tileColors;
 
 		float tileSize = 64;
 		RenderMode mode = RenderMode::Rect;
@@ -28,33 +30,6 @@ namespace OpenKaiser {
 		bool scrollable = true;
 
 		sdl::FPoint offset{ 0,0 };
-
-		void load_country_colors() {
-			const std::string config_location = "data/config/country_colors.txt";
-			std::ifstream config_file(config_location);
-			// Check for errors
-			if (config_file.bad()) {
-				throw OpenKaiserError("Could not open Country Colors file in " + config_location);
-			}
-
-			std::string line;
-			while (std::getline(config_file, line)) {
-				std::stringstream splitter(line);
-				int r, g, b;
-				splitter >> r >> g >> b;
-
-				if (!splitter.good()) {
-					throw OpenKaiserError("Error parsing color: " + line);
-				}
-
-				country_colors.push_back({
-					static_cast<uint8_t>(r),
-					static_cast<uint8_t>(g),
-					static_cast<uint8_t>(b),
-					255
-					});
-			}
-		}
 
 		void draw_tile_rect(sdl::Point& offset, Tile& currentTile, int x, int y) {
 			switch (currentTile.type) {
@@ -112,10 +87,6 @@ namespace OpenKaiser {
 		}
 
 	public:
-		MapRenderer() {
-			this->load_country_colors();
-		}
-
 		void set_tile_size(float tileSize) {
 			this->tileSize = tileSize;
 		}
@@ -150,6 +121,9 @@ namespace OpenKaiser {
 
 		void init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resourceManager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
 			UIElement::init(renderer, resourceManager, state, controller);
+
+			this->country_colors = Config::load_country_colors();
+			this->tileColors = Config::load_tile_colors();
 
 			this->set_screen_area(screenArea);
 

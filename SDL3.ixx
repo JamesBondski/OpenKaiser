@@ -49,6 +49,7 @@ export namespace sdl {
     export using FPoint = SDL_FPoint;
     export using PixelFormat = SDL_PixelFormat;
     export using Keycode = SDL_Keycode;
+    export using ScaleMode = SDL_ScaleMode;
     
     export namespace EventType {
         export constexpr Uint32 Quit = SDL_EVENT_QUIT;
@@ -151,6 +152,14 @@ export namespace sdl {
         return make_texture_ptr(texture);
     }
 
+    export TexturePtr create_texture_from_surface(RendererPtr& renderer, SurfacePtr& surface) {
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer.get(), surface.get());
+        if (!texture) {
+            throw sdl_error("Failed to create texture from surface");
+        }
+        return make_texture_ptr(texture);
+    }
+
     export void render_texture(RendererPtr& renderer, TexturePtr& texture, const FRect& rect) {
         if (!SDL_RenderTexture(renderer.get(), texture.get(), NULL, &rect)) {
             throw sdl_error("Error rendering texture.");
@@ -241,6 +250,16 @@ export namespace sdl {
         return make_surface_ptr(surface);
     }
 
+    export void lock_surface(SurfacePtr& surface) {
+        if (!SDL_LockSurface(surface.get())) {
+            throw sdl_error("Error locking surface.");
+        }
+    }
+
+    export void unlock_surface(SurfacePtr& surface) {
+        SDL_UnlockSurface(surface.get());
+    }
+
     export void save_png(SurfacePtr& surface, const std::string& file) {
         if (!SDL_SavePNG(surface.get(), file.data())) {
             throw sdl_error("Error saving image to " + file);
@@ -250,6 +269,12 @@ export namespace sdl {
     export void set_render_clip_rect(RendererPtr& renderer, Rect* rect) {
         if (!SDL_SetRenderClipRect(renderer.get(), rect)) {
             throw sdl_error("Error setting clip rect.");
+        }
+    }
+
+    export void set_texture_scale_mode(TexturePtr& texture, ScaleMode mode) {
+        if (!SDL_SetTextureScaleMode(texture.get(), mode)) {
+            throw sdl_error("Error setting texture scale mode.");
         }
     }
 }

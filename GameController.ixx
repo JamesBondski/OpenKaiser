@@ -33,6 +33,10 @@ namespace OpenKaiser {
 			command->Execute(this->state);
 			history.push_back(std::move(command));
 		}
+
+		int get_history_size() {
+			return history.size();
+		}
 	};
 
 }

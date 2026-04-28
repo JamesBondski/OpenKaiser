@@ -27,6 +27,10 @@ namespace OpenKaiser {
 			return this->screenArea;
 		}
 
+		sdl::FRect get_offset_area(sdl::Point& offset) {
+			return sdl::FRect{this->screenArea.x + offset.x, this->screenArea.y + offset.y, this->screenArea.w, this->screenArea.h};
+		}
+
 		void set_world_state(std::shared_ptr<WorldState>& state) {
 			this->state = state;
 			for (auto element : children) {
