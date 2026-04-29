@@ -17,5 +17,6 @@
     <ClCompile Include="GameController.ixx" />
     <ClCompile Include="MainState.ixx" />
     <ClCompile Include="Config.ixx" />
+    <ClCompile Include="Events.ixx" />
   </ItemGroup>
 </Project>

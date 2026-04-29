@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Config.ixx" />
+    <ClCompile Include="Events.ixx" />
     <ClCompile Include="Game.ixx" />
     <ClCompile Include="GameController.ixx" />
     <ClCompile Include="UI.ixx" />
