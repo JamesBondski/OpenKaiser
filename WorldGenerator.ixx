@@ -126,10 +126,17 @@ namespace OpenKaiser {
 
 			int count = 0;
 			while (std::getline(country_names, line) && count < num_countries) {
+				Dynasty new_dynasty;
+				new_dynasty.id = count;
+				new_dynasty.name = line;
+				new_dynasty.human = (count == 0);
+				state->dynasties().push_back(new_dynasty);
+
 				Country new_country;
 				new_country.id = count++;
 				new_country.name = line;
 				new_country.gold = 1000;
+				new_country.dynasty_id = new_dynasty.id;
 				state->countries().push_back(new_country);
 			}
 		}

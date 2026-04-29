@@ -2,6 +2,7 @@ export module WorldState;
 
 import std;
 import SDL3;
+import General;
 
 export namespace OpenKaiser {
 	export enum class TileType : std::uint8_t {
@@ -29,9 +30,16 @@ export namespace OpenKaiser {
 
 	export struct Country {
 		std::int16_t id;
+		std::int16_t dynasty_id;
 		std::int16_t gold = 0;
 		std::string name;
 		sdl::Point capital;
+	};
+
+	export struct Dynasty {
+		std::int16_t id;
+		bool human;
+		std::string name;
 	};
 
 	export template<typename T> class Array2D {
@@ -62,9 +70,11 @@ export namespace OpenKaiser {
 		Array2D<Tile> tiles_;
 		int map_seed_;
 		std::vector<Country> countries_;
+		std::vector<Dynasty> dynasties_;
 		std::int16_t current_country_id_ = 0;
 		int year_ = 1000;
 
+		const int save_file_version = 1;
 	public:
 		WorldState(size_t width, size_t height) : tiles_(width, height) {
 		}
@@ -82,6 +92,10 @@ export namespace OpenKaiser {
 
 		std::vector<Country>& countries() {
 			return countries_;
+		}
+
+		std::vector<Dynasty>& dynasties() {
+			return dynasties_;
 		}
 
 		int map_seed() const {
@@ -110,11 +124,16 @@ export namespace OpenKaiser {
 
 		void Save(const std::string& path) {
 			std::ofstream save_file(path);
+			save_file << save_file_version << std::endl;
 			save_file << map_seed_ << std::endl;
 			save_file << year_ << std::endl;
+			save_file << dynasties_.size() << std::endl;
+			for (Dynasty& dynasty : dynasties_) {
+				save_file << dynasty.id << " " << dynasty.name << " " << dynasty.human << std::endl;
+			}
 			save_file << countries_.size() << std::endl;
 			for (Country& country : countries_) {
-				save_file << country.id << " " << country.name << " " << country.capital.x << " " << country.capital.y << std::endl;
+				save_file << country.id << " " << country.name << " " << country.dynasty_id << " " << country.capital.x << " " << country.capital.y << std::endl;
 			}
 			save_file << current_country_id_ << std::endl;
 			save_file << tiles_.width() << " " << tiles_.height() << std::endl;
@@ -125,15 +144,29 @@ export namespace OpenKaiser {
 
 		void Load(const std::string& path) {
 			std::ifstream save_file(path);
+			int actual_version;
+			save_file >> actual_version;
+			if (save_file_version != actual_version) {
+				throw OpenKaiserError("Save file version not matching.");
+			}
+
 			save_file >> map_seed_;
 			save_file >> year_;
+
+			int numDynasties;
+			save_file >> numDynasties;
+			for (int i = 0; i < numDynasties; i++) {
+				Dynasty dynasty;
+				save_file >> dynasty.id >> dynasty.name >> dynasty.human;
+				dynasties_.push_back(dynasty);
+			}
 
 			int numCountries;
 			save_file >> numCountries;
 			for (int i = 0; i < numCountries; i++) {
 				Country country;
 				int x, y;
-				save_file >> country.id >> country.name >> x >> y;
+				save_file >> country.id >> country.name >> country.dynasty_id >> x >> y;
 				country.capital.x = x;
 				country.capital.y = y;
 				countries().push_back(country);
