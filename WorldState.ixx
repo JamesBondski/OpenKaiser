@@ -118,8 +118,16 @@ export namespace OpenKaiser {
 			return countries_;
 		}
 
+		Country& country(std::int16_t id) {
+			return countries_[id];
+		}
+
 		std::vector<Dynasty>& dynasties() {
 			return dynasties_;
+		}
+
+		Dynasty& dynasty(std::int16_t id) {
+			return dynasties_[id];
 		}
 
 		int map_seed() const {

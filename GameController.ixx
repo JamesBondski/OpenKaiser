@@ -82,6 +82,22 @@ namespace OpenKaiser {
 		}
 	};
 
+	export class ChangePopulationCountCommand : public Command {
+	private:
+		int amount_, x_, y_;
+	public:
+		ChangePopulationCountCommand(int x, int y, int amount) : amount_(amount), x_(x), y_(y) {
+		}
+
+		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
+			Tile& tile = state->tile(x_, y_);
+			Country& country = state->country(tile.countryId);
+
+			tile.population += amount_;
+			country.population += amount_;
+		}
+	};
+
 	export class GrowPopulationCommand : public Command {
 	private:
 		int x_, y_;
@@ -91,8 +107,12 @@ namespace OpenKaiser {
 		}
 
 		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
-			std::uniform_real_distribution<float> growth_dist(1.03, 1.07);
-			state->tile(x_, y_).population += growth_dist(random);
+			Tile& tile = state->tile(x_, y_);
+			Country& country = state->country(tile.countryId);
+			if (country.population_fed >= country.population) {
+				std::uniform_real_distribution<float> growth_dist(1.03, 1.07);
+				Enqueue<ChangePopulationCountCommand>(x_, y_, growth_dist(random));
+			}
 		}
 	};
 
