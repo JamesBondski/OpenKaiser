@@ -18,22 +18,29 @@ export namespace OpenKaiser {
 		Town,
 		Palace,
 		Field,
-		Pasture
+		Pasture,
+		Market,
+		Harbor
 	};
 
 	export struct Tile {
 		TileType type=TileType::Grass;
 		std::int16_t countryId = -1;
 		BuildingType building = BuildingType::None;
-		std::uint32_t population=0;
+		int population=0;
 	};
 
 	export struct Country {
 		std::int16_t id;
 		std::int16_t dynasty_id;
-		std::int16_t gold = 0;
 		std::string name;
 		sdl::Point capital;
+		int gold = 0;
+		int wheat = 0;
+		int livestock = 0;
+
+		// Non-Persistant fields
+		int population = 0;
 	};
 
 	export struct Dynasty {

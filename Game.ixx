@@ -88,11 +88,9 @@ namespace OpenKaiser {
 	public:
 		void Init() {
 			std::cout << "Initializing World...\n";
-			world_ = WorldGenerator().Generate(WorldConfig());
-			world_->Save("save/init.txt");
 
 			controller_ = std::make_shared<GameController>();
-			controller_->Init(world_);
+			world_ = controller_->StartGame();
 
 			std::cout << "Initializing SDL...\n";
 			sdl::init();

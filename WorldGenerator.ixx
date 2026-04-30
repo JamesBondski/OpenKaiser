@@ -151,10 +151,9 @@ namespace OpenKaiser {
 		}
 
 	public:
-		std::shared_ptr<WorldState> Generate(const WorldConfig& config) {
+
+		std::shared_ptr<WorldState> Generate(const WorldConfig& config, std::mt19937& gen) {
 			std::shared_ptr<WorldState> state(new WorldState(config.width, config.height));
-			std::random_device rd;
-			std::mt19937 gen(rd());
 
 			std::uniform_int_distribution<int> seed_dist;
 			int seed = seed_dist(gen);
