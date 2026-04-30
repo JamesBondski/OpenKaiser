@@ -30,12 +30,13 @@ namespace OpenKaiser {
 
 		void EndRound() {
 			// Reset population for countries
+			std::vector<bool> country_fed;
 			for (Country& country : state_->countries()) {
 				country.population = 0;
+				country_fed.push_back(true);
 			}
-
+			
 			// Feed the population
-			std::uniform_real_distribution<float> growth_dist(1.03, 1.07);
 			for (int x = 0; x < state_->tiles().width(); x++) {
 				for (int y = 0; y < state_->tiles().height(); y++) {
 					Tile& tile = state_->tiles()(x, y);
@@ -55,8 +56,8 @@ namespace OpenKaiser {
 						country.wheat -= consumed;
 
 						// Can only grow if everyone was fed
-						if (neededFood == 0) {
-							tile.population *= growth_dist(random_);
+						if (neededFood > 0) {
+							country_fed[country.id] = false;
 						}
 
 						country.population += tile.population;
@@ -70,7 +71,7 @@ namespace OpenKaiser {
 			std::uniform_int_distribution livestock_dist(40, 60);
 			std::uniform_int_distribution wheat_dist(40, 60);
 			std::uniform_real_distribution<float> gold_dist(0.63f, 0.87f);
-
+			std::uniform_real_distribution<float> growth_dist(1.03, 1.07);
 			for (int x = 0; x < state_->tiles().width(); x++) {
 				for (int y = 0; y < state_->tiles().height(); y++) {
 					Tile& tile = state_->tiles()(x, y);
@@ -87,6 +88,9 @@ namespace OpenKaiser {
 						case BuildingType::Market:
 						case BuildingType::Town:
 							country.gold += tile.population * gold_dist(random_);
+							if (country_fed[tile.countryId]) {
+								tile.population *= growth_dist(random_);
+							}
 							break;
 						}
 					}
