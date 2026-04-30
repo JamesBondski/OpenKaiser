@@ -23,6 +23,12 @@ export namespace OpenKaiser {
 		Harbor
 	};
 
+	export enum class ResourceType : std::uint8_t {
+		Gold,
+		Wheat,
+		Livestock
+	};
+
 	export struct Tile {
 		TileType type=TileType::Grass;
 		std::int16_t countryId = -1;
@@ -35,12 +41,11 @@ export namespace OpenKaiser {
 		std::int16_t dynasty_id;
 		std::string name;
 		sdl::Point capital;
-		int gold = 0;
-		int wheat = 0;
-		int livestock = 0;
+		std::unordered_map<ResourceType, int> resources;
 
 		// Non-Persistant fields
 		int population = 0;
+		int population_fed = 0;
 	};
 
 	export struct Dynasty {

@@ -6,12 +6,160 @@ import Events;
 import WorldGenerator;
 
 namespace OpenKaiser {
+
+	export class Command {
+	protected:
+		std::vector<std::unique_ptr<Command>> sub_commands_;
+
+		template <std::derived_from<Command> T, typename... Args>
+		void Enqueue(Args&&... args) {
+			sub_commands_.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+		}
+	public:
+		virtual void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) = 0;
+		
+		std::vector<std::unique_ptr<Command>> DoExecute(std::shared_ptr<WorldState>& state, std::mt19937 random) {
+			Execute(state, random);
+			return std::move(sub_commands_);
+		}
+	};
+
+	export class ChangeResourceAmountCommand : public Command {
+	private:
+		std::uint16_t country_id_;
+		ResourceType resource_;
+		int amount_;
+
+	public:
+		ChangeResourceAmountCommand(std::uint16_t country_id, ResourceType resource, int amount) 
+			: country_id_(country_id), resource_(resource), amount_(amount) {
+		}
+
+		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
+			state->countries()[country_id_].resources[resource_] += amount_;
+		}
+	};
+
+	export class FeedPopulationCommand : public Command {
+	private:
+		int FeedPopulation(Country& country, ResourceType resource, int neededFood) {
+			int consumed = std::min(neededFood, country.resources[resource]);
+			if (consumed > 0) {
+				country.population_fed += consumed;
+				Enqueue<ChangeResourceAmountCommand>(country.id, ResourceType::Livestock, -consumed);
+			}
+			return consumed;
+		}
+	public:
+		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
+			for (int x = 0; x < state->tiles().width(); x++) {
+				for (int y = 0; y < state->tiles().height(); y++) {
+					Tile& tile = state->tiles()(x, y);
+
+					// Feed the population
+					if (tile.population > 0) {
+						int neededFood = tile.population;
+						Country& country = state->countries()[tile.countryId];
+						country.population += tile.population;
+
+						// Consume livestock first, then wheat
+						neededFood -= FeedPopulation(country, ResourceType::Livestock, neededFood);
+						neededFood -= FeedPopulation(country, ResourceType::Wheat, neededFood);
+					}
+				}
+			}
+		}
+	};
+
+	export class ResetPopulationCountCommand : public Command {
+	public:
+		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
+			std::vector<bool> country_fed;
+			for (Country& country : state->countries()) {
+				country.population = 0;
+				country_fed.push_back(true);
+			}
+		}
+	};
+
+	export class GrowPopulationCommand : public Command {
+	private:
+		int x_, y_;
+	public:
+		GrowPopulationCommand(int x, int y) 
+			: x_(x), y_(y){
+		}
+
+		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
+			std::uniform_real_distribution<float> growth_dist(1.03, 1.07);
+			state->tiles()(x_, y_).population += growth_dist(random);
+		}
+	};
+
+	export class IncomeCommand : public Command {
+	public:
+		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
+			// Income
+			std::uniform_int_distribution livestock_dist(40, 60);
+			std::uniform_int_distribution wheat_dist(40, 60);
+			std::uniform_real_distribution<float> gold_dist(0.63f, 0.87f);
+			
+			for (int x = 0; x < state->tiles().width(); x++) {
+				for (int y = 0; y < state->tiles().height(); y++) {
+					Tile& tile = state->tiles()(x, y);
+					if (tile.countryId >= 0) {
+						Country& country = state->countries()[tile.countryId];
+						switch (tile.building) {
+						case BuildingType::Pasture:
+							Enqueue<ChangeResourceAmountCommand>(country.id, ResourceType::Livestock, livestock_dist(random));
+							break;
+						case BuildingType::Field:
+							Enqueue<ChangeResourceAmountCommand>(country.id, ResourceType::Wheat, wheat_dist(random));
+							break;
+						case BuildingType::Village:
+						case BuildingType::Market:
+						case BuildingType::Town:
+							Enqueue<ChangeResourceAmountCommand>(country.id, ResourceType::Gold, tile.population * gold_dist(random));
+							Enqueue<GrowPopulationCommand>(x, y);
+							break;
+						}
+					}
+				}
+			}
+		}
+	};
+
+	export class EndRoundCommand : public Command {
+	public:
+		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
+			Enqueue<ResetPopulationCountCommand>();
+			Enqueue<FeedPopulationCommand>();
+			Enqueue<IncomeCommand>();
+			state->next_year();
+		}
+	};
+
 	export class GameController {
 	private:
 		std::shared_ptr<WorldState> state_;
 		Event<std::uint16_t> on_start_human_turn_;
 		std::random_device rd_;
 		std::mt19937 random_;
+		std::queue<std::unique_ptr<Command>> command_queue_;
+
+		void Execute(std::unique_ptr<Command> command) {
+			command_queue_.push(std::move(command));
+
+			while (!command_queue_.empty()) {
+				std::unique_ptr<Command> next = std::move(command_queue_.front());
+				command_queue_.pop();
+
+				std::vector<std::unique_ptr<Command>> sub_commands = next->DoExecute(state_, random_);
+				for (auto& cmd : sub_commands) {
+					command_queue_.push(std::move(cmd));
+				}
+			}
+		}
 
 	public:
 		GameController()
@@ -29,73 +177,7 @@ namespace OpenKaiser {
 		}
 
 		void EndRound() {
-			// Reset population for countries
-			std::vector<bool> country_fed;
-			for (Country& country : state_->countries()) {
-				country.population = 0;
-				country_fed.push_back(true);
-			}
-			
-			// Feed the population
-			for (int x = 0; x < state_->tiles().width(); x++) {
-				for (int y = 0; y < state_->tiles().height(); y++) {
-					Tile& tile = state_->tiles()(x, y);
-
-					// Feed the population
-					if (tile.population > 0) {
-						int neededFood = tile.population;
-						Country& country = state_->countries()[tile.countryId];
-
-						// Consume livestock first, then wheat
-						int consumed = std::min(neededFood, country.livestock);
-						neededFood -= consumed;
-						country.livestock -= consumed;
-
-						consumed = std::min(neededFood, state_->countries()[tile.countryId].wheat);
-						neededFood -= consumed;
-						country.wheat -= consumed;
-
-						// Can only grow if everyone was fed
-						if (neededFood > 0) {
-							country_fed[country.id] = false;
-						}
-
-						country.population += tile.population;
-					}
-				}
-			}
-
-			this->state_->next_year();
-
-			// Income
-			std::uniform_int_distribution livestock_dist(40, 60);
-			std::uniform_int_distribution wheat_dist(40, 60);
-			std::uniform_real_distribution<float> gold_dist(0.63f, 0.87f);
-			std::uniform_real_distribution<float> growth_dist(1.03, 1.07);
-			for (int x = 0; x < state_->tiles().width(); x++) {
-				for (int y = 0; y < state_->tiles().height(); y++) {
-					Tile& tile = state_->tiles()(x, y);
-					if (tile.countryId >= 0) {
-						Country& country = state_->countries()[tile.countryId];
-						switch (tile.building) {
-						case BuildingType::Pasture:
-							country.livestock += livestock_dist(random_);
-							break;
-						case BuildingType::Field:
-							country.wheat += wheat_dist(random_);
-							break;
-						case BuildingType::Village:
-						case BuildingType::Market:
-						case BuildingType::Town:
-							country.gold += tile.population * gold_dist(random_);
-							if (country_fed[tile.countryId]) {
-								tile.population *= growth_dist(random_);
-							}
-							break;
-						}
-					}
-				}
-			}
+			Execute(std::make_unique<EndRoundCommand>());
 		}
 
 		void EndTurn() {

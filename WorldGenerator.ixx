@@ -135,7 +135,9 @@ namespace OpenKaiser {
 				Country new_country;
 				new_country.id = count++;
 				new_country.name = line;
-				new_country.gold = 1000;
+				new_country.resources[ResourceType::Gold] = 1000;
+				new_country.resources[ResourceType::Wheat] = 0;
+				new_country.resources[ResourceType::Livestock] = 0;
 				new_country.dynasty_id = new_dynasty.id;
 				state->countries().push_back(new_country);
 			}
