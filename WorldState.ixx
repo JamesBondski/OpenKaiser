@@ -110,6 +110,10 @@ export namespace OpenKaiser {
 			return tiles_;
 		}
 
+		Tile& tile(size_t x, size_t y) {
+			return tiles_(x, y);
+		}
+
 		std::vector<Country>& countries() {
 			return countries_;
 		}

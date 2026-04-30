@@ -58,16 +58,16 @@ namespace OpenKaiser {
 			if (current_tile.countryId >= 0) {
 				auto cc = country_colors_[current_tile.countryId];
 				sdl::set_render_draw_color(renderer_, cc);
-				if (x > 0 && current_tile.countryId != state_->tiles()(x - 1, y).countryId) {
+				if (x > 0 && current_tile.countryId != state_->tile(x - 1, y).countryId) {
 					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + y * tile_size_, offset.x + x * tile_size_, offset.y + (y + 1) * tile_size_);
 				}
-				if (y > 0 && current_tile.countryId != state_->tiles()(x, y - 1).countryId) {
+				if (y > 0 && current_tile.countryId != state_->tile(x, y - 1).countryId) {
 					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + y * tile_size_, offset.x + (x + 1) * tile_size_, offset.y + y * tile_size_);
 				}
-				if (x < state_->tiles().width() - 1 && current_tile.countryId != state_->tiles()(x + 1, y).countryId) {
+				if (x < state_->tiles().width() - 1 && current_tile.countryId != state_->tile(x + 1, y).countryId) {
 					sdl::render_line(renderer_, offset.x + (x + 1) * tile_size_ - 1, offset.y + y * tile_size_, offset.x + (x + 1) * tile_size_ - 1, offset.y + (y + 1) * tile_size_);
 				}
-				if (y < state_->tiles().height() - 1 && current_tile.countryId != state_->tiles()(x, y + 1).countryId) {
+				if (y < state_->tiles().height() - 1 && current_tile.countryId != state_->tile(x, y + 1).countryId) {
 					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + (y + 1) * tile_size_ - 1, offset.x + (x + 1) * tile_size_, offset.y + (y + 1) * tile_size_ - 1);
 				}
 			}
@@ -144,7 +144,7 @@ namespace OpenKaiser {
 						continue;
 					}
 
-					Tile& current_tile = state_->tiles()(first_tile.x + x, first_tile.y + y);
+					Tile& current_tile = state_->tile(first_tile.x + x, first_tile.y + y);
 					if (mode_ == RenderMode::Rect) {
 						DrawTileRect(offset, current_tile, x, y);
 					}

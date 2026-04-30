@@ -171,18 +171,18 @@ namespace OpenKaiser {
 			for (int i = 0; i < config.num_countries; i++) {
 				std::pair<int, int> coords = GetStartingLocation(state, gen);
 
-				Tile& center_tile = state->tiles()(coords.first, coords.second);
+				Tile& center_tile = state->tile(coords.first, coords.second);
 				center_tile.countryId = i;
 				center_tile.building = BuildingType::Castle;
 
-				Tile& left_tile = state->tiles()(coords.first - 1, coords.second);
+				Tile& left_tile = state->tile(coords.first - 1, coords.second);
 				left_tile.countryId = i;
 				left_tile.building = BuildingType::Village;
 				left_tile.population = 100;
 
-				InitTile(state->tiles()(coords.first, coords.second - 1), i);
-				InitTile(state->tiles()(coords.first + 1, coords.second), i);
-				InitTile(state->tiles()(coords.first, coords.second + 1), i);
+				InitTile(state->tile(coords.first, coords.second - 1), i);
+				InitTile(state->tile(coords.first + 1, coords.second), i);
+				InitTile(state->tile(coords.first, coords.second + 1), i);
 
 				state->countries()[i].capital = { coords.first, coords.second };
 			}

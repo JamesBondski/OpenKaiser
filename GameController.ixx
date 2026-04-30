@@ -54,7 +54,7 @@ namespace OpenKaiser {
 		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
 			for (int x = 0; x < state->tiles().width(); x++) {
 				for (int y = 0; y < state->tiles().height(); y++) {
-					Tile& tile = state->tiles()(x, y);
+					Tile& tile = state->tile(x, y);
 
 					// Feed the population
 					if (tile.population > 0) {
@@ -92,7 +92,7 @@ namespace OpenKaiser {
 
 		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
 			std::uniform_real_distribution<float> growth_dist(1.03, 1.07);
-			state->tiles()(x_, y_).population += growth_dist(random);
+			state->tile(x_, y_).population += growth_dist(random);
 		}
 	};
 
@@ -106,7 +106,7 @@ namespace OpenKaiser {
 			
 			for (int x = 0; x < state->tiles().width(); x++) {
 				for (int y = 0; y < state->tiles().height(); y++) {
-					Tile& tile = state->tiles()(x, y);
+					Tile& tile = state->tile(x, y);
 					if (tile.countryId >= 0) {
 						Country& country = state->countries()[tile.countryId];
 						switch (tile.building) {
