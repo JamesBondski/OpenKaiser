@@ -85,7 +85,7 @@ namespace OpenKaiser {
 			stack_->AddChild(mini_map_);
 
 			sdl::Color text_color{ 255, 255, 255, 255 };
-			std::function<std::string()> text_getter = [this]() { return "Country: " + state_->countries()[state_->current_country_id()].name; };
+			std::function<std::string()> text_getter = [this]() { return "Country: " + state_->current_country().name; };
 			std::shared_ptr<DynamicTextElement> current_player_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
 			current_player_text->screen_area().h = 25;
 			stack_->AddChild(current_player_text);
@@ -95,7 +95,7 @@ namespace OpenKaiser {
 			current_year_text->screen_area().h = 25;
 			stack_->AddChild(current_year_text);
 
-			text_getter = [this]() { return "Gold: " + std::to_string(state_->countries()[state_->current_country_id()].resources[ResourceType::Gold]); };
+			text_getter = [this]() { return "Gold: " + std::to_string(state_->current_country().resources[ResourceType::Gold]); };
 			std::shared_ptr<DynamicTextElement> gold_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
 			gold_text->screen_area().h = 25;
 			stack_->AddChild(gold_text);

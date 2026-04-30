@@ -36,7 +36,7 @@ namespace OpenKaiser {
 		}
 
 		void Execute(std::shared_ptr<WorldState>& state, std::mt19937& random) override {
-			state->countries()[country_id_].resources[resource_] += amount_;
+			state->country(country_id_).resources[resource_] += amount_;
 		}
 	};
 
@@ -59,7 +59,7 @@ namespace OpenKaiser {
 					// Feed the population
 					if (tile.population > 0) {
 						int neededFood = tile.population;
-						Country& country = state->countries()[tile.countryId];
+						Country& country = state->country(tile.countryId);
 						country.population += tile.population;
 
 						// Consume livestock first, then wheat
@@ -128,7 +128,7 @@ namespace OpenKaiser {
 				for (int y = 0; y < state->tiles().height(); y++) {
 					Tile& tile = state->tile(x, y);
 					if (tile.countryId >= 0) {
-						Country& country = state->countries()[tile.countryId];
+						Country& country = state->country(tile.countryId);
 						switch (tile.building) {
 						case BuildingType::Pasture:
 							Enqueue<ChangeResourceAmountCommand>(country.id, ResourceType::Livestock, livestock_dist(random));

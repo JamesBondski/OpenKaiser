@@ -184,7 +184,7 @@ namespace OpenKaiser {
 				InitTile(state->tile(coords.first + 1, coords.second), i);
 				InitTile(state->tile(coords.first, coords.second + 1), i);
 
-				state->countries()[i].capital = { coords.first, coords.second };
+				state->country(i).capital = { coords.first, coords.second };
 			}
 			return state;
 		}
