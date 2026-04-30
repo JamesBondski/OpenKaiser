@@ -11,6 +11,7 @@ import WorldState;
 import GameController;
 import Menu;
 import Config;
+import Events;
 
 namespace OpenKaiser {
 	export class MiniMap : public UIElement {
@@ -19,6 +20,7 @@ namespace OpenKaiser {
 		sdl::TexturePtr texture_;
 		std::unordered_map<TileType, sdl::Color> tile_colors_;
 		std::vector<sdl::Color> country_colors_;
+		float last_redraw_time_ = 0;
 
 		void Redraw() {
 			Array2D<Tile>& tiles = state_->tiles();
@@ -49,13 +51,16 @@ namespace OpenKaiser {
 		}
 
 		void Draw(sdl::Point& offset) override {
-				if (controller_->history_size() != last_history_count_) {
-					Redraw();
-				}
+			sdl::FRect output_area = GetOffsetArea(offset);
+			sdl::render_texture(renderer_, texture_, output_area);
+		}
 
-				sdl::FRect output_area = GetOffsetArea(offset);
-				sdl::render_texture(renderer_, texture_, output_area);
+		void Update(float passed_time) override {
+			last_redraw_time_ += passed_time;
+			if (last_redraw_time_ > 500) {
+				Redraw();
 			}
+		}
 	};
 
 	export class SideBar : public UIElement {
@@ -68,10 +73,10 @@ namespace OpenKaiser {
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			UIElement::Init(renderer, resources, state, controller);
 
-				padding_ = std::make_shared<Padding>();
-				padding_->set_pad_amount(5);
-				padding_->set_fill(true);
-				AddChild(padding_);
+			padding_ = std::make_shared<Padding>();
+			padding_->set_pad_amount(5);
+			padding_->set_fill(true);
+			AddChild(padding_);
 
 			stack_ = std::make_shared<VerticalStack>();
 			padding_->AddChild(stack_);
@@ -99,14 +104,14 @@ namespace OpenKaiser {
 		}
 
 		void set_screen_area(sdl::FRect& screen_area) override {
-				if (mini_map_->screen_area().h != screen_area.w) {
-					sdl::FRect new_height = mini_map_->screen_area();
-					new_height.h = screen_area.w;
-					mini_map_->set_screen_area(new_height);
-				}
-
-				UIElement::set_screen_area(screen_area);
+			if (mini_map_->screen_area().h != screen_area.w) {
+				sdl::FRect new_height = mini_map_->screen_area();
+				new_height.h = screen_area.w;
+				mini_map_->set_screen_area(new_height);
 			}
+
+			UIElement::set_screen_area(screen_area);
+		}
 	};
 
 	export class MainState : public GameState {
@@ -115,13 +120,15 @@ namespace OpenKaiser {
 		std::shared_ptr<MenuManager> menu_;
 		std::shared_ptr<SideBar> side_bar_;
 
+		Connection human_turn_;
+
 	public:
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			GameState::Init(renderer, resources, state, controller);
 
 			map_renderer_ = std::make_shared<MapRenderer>();
-				AddChild(map_renderer_);
-				map_renderer_->set_render_mode(RenderMode::Image);
+			AddChild(map_renderer_);
+			map_renderer_->set_render_mode(RenderMode::Image);
 
 			side_bar_ = std::make_shared<SideBar>();
 			AddChild(side_bar_);
@@ -144,34 +151,40 @@ namespace OpenKaiser {
 			quit->callback = [this](const std::string item_name) { return HandleQuit(item_name); };
 			menu_->add_item(root_item, quit);
 
+			human_turn_ = this->controller_->on_start_human_turn().subscribe(this, &MainState::HandleStartHumanTurn);
+
 			set_screen_area(screen_area_);
 		}
 
 		void set_screen_area(sdl::FRect& screen_area) override {
-				GameState::set_screen_area(screen_area);
+			GameState::set_screen_area(screen_area);
 
-				if (map_renderer_ && menu_) {
-					const int kMenuHeight = 200;
-					const int kSideBarWidth = 260;
+			if (map_renderer_ && menu_) {
+				const int kMenuHeight = 200;
+				const int kSideBarWidth = 260;
 
-					sdl::FRect map_area(0, 0, screen_area_.w - kSideBarWidth, screen_area_.h - kMenuHeight);
-					map_renderer_->set_screen_area(map_area);
+				sdl::FRect map_area(0, 0, screen_area_.w - kSideBarWidth, screen_area_.h - kMenuHeight);
+				map_renderer_->set_screen_area(map_area);
 
-					sdl::FRect menu_area{ 0, map_area.y + map_area.h, screen_area_.w, kMenuHeight };
-					menu_->set_screen_area(menu_area);
+				sdl::FRect menu_area{ 0, map_area.y + map_area.h, screen_area_.w, kMenuHeight };
+				menu_->set_screen_area(menu_area);
 
-					sdl::FRect side_bar_area{ map_area.w, 0, kSideBarWidth, screen_area_.h - kMenuHeight };
-					side_bar_->set_screen_area(side_bar_area);
-				}
+				sdl::FRect side_bar_area{ map_area.w, 0, kSideBarWidth, screen_area_.h - kMenuHeight };
+				side_bar_->set_screen_area(side_bar_area);
 			}
+		}
+
+		void HandleStartHumanTurn(std::uint16_t countryId) {
+			
+		}
 
 		ResultAction HandleQuit(const std::string item_name) {
-				set_next_state("quit");
-				return ResultAction::None;
-			}
+			set_next_state("quit");
+			return ResultAction::None;
+		}
 
 		ResultAction HandleEndTurn(const std::string item_name) {
-			controller_->HandleCommand(std::make_unique<EndTurnCommand>());
+			controller_->EndTurn();
 			return ResultAction::None;
 		}
 	};

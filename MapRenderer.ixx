@@ -182,8 +182,8 @@ namespace OpenKaiser {
 
 		sdl::SurfacePtr RenderToSurface() {
 			auto tiles = state_->tiles();
-			float kSaveTileSize = 64;
-			sdl::SurfacePtr target_surface = sdl::create_surface(tiles.width() * kSaveTileSize, tiles.height() * kSaveTileSize, sdl::PixelFormat::SDL_PIXELFORMAT_RGB24);
+			std::uint8_t kSaveTileSize = 64;
+			sdl::SurfacePtr target_surface = sdl::create_surface(static_cast<size_t>(tiles.width() * kSaveTileSize), static_cast<size_t>(tiles.height() * kSaveTileSize), sdl::PixelFormat::SDL_PIXELFORMAT_RGB24);
 
 			std::unordered_map<TileType, sdl::SurfacePtr> tile_surfaces;
 			tile_surfaces[TileType::Grass] = sdl::load_surface("data/graphics/tiles/grass.png");
@@ -193,7 +193,7 @@ namespace OpenKaiser {
 			for (int x = 0; x < tiles.width(); x++) {
 				for (int y = 0; y < tiles.height(); y++) {
 					Tile& current_tile = tiles(x, y);
-					sdl::Rect dstrect{ x * kSaveTileSize, y * kSaveTileSize, kSaveTileSize, kSaveTileSize };
+					sdl::Rect dstrect{ (x * kSaveTileSize), y * kSaveTileSize, kSaveTileSize, kSaveTileSize };
 					sdl::blit_surface(tile_surfaces[current_tile.type], nullptr, target_surface, &dstrect);
 				}
 			}

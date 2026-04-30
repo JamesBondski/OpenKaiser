@@ -5,51 +5,38 @@ import std;
 import Events;
 
 namespace OpenKaiser {
-
-	export class Command {
-	public:
-		virtual void Execute(std::shared_ptr<WorldState>& world) = 0;
-	};
-
-	export class EndTurnCommand : public Command {
-	public:
-		void Execute(std::shared_ptr<WorldState>& world) {
-			if (world->next_player() == 0) {
-				world->next_year();
-			}
-		}
-	};
-
 	export class GameController {
 	private:
 		std::shared_ptr<WorldState> state_;
-		std::vector<std::unique_ptr<Command>> history_;
-		Event<Command*> before_command;
-		Event<Command*> after_command;
+		Event<std::uint16_t> on_start_human_turn_;
 
 	public:
+		Event<std::uint16_t>& on_start_human_turn() {
+			return on_start_human_turn_;
+		}
+
 		void Init(std::shared_ptr<WorldState>& state) {
 			state_ = state;
 		}
 
-		void HandleCommand(std::unique_ptr<Command> command) {
-			this->before_command.emit(command.get());
-			command->Execute(state_);
-			history_.push_back(std::move(command));
-			this->after_command.emit(command.get());
+		void EndRound() {
+			this->state_->next_year();
 		}
 
-		int history_size() const {
-			return history_.size();
-		}
+		void EndTurn() {
+			std::uint16_t next_country = state_->next_player();
+			if (next_country == 0) {
+				EndRound();
+			}
 
-		Event<Command*>& on_before_command() {
-			return this->before_command;
-		}
-
-		Event<Command*>& on_after_command() {
-			return this->after_command;
+			Dynasty& dynasty = state_->current_dynasty();
+			if (dynasty.human) {
+				on_start_human_turn_.emit(next_country);
+			}
+			else {
+				// AI turn here
+				EndTurn();
+			}
 		}
 	};
-
 }

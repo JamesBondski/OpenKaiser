@@ -116,7 +116,7 @@ namespace OpenKaiser {
 					Draw();
 				}
 			}
-			catch (const sdl::sdl_error& e) {
+			catch (const sdl::sdl_error&) {
 				world_->Save("save/crash.txt");
 				throw;
 			}

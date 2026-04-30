@@ -86,6 +86,14 @@ export namespace OpenKaiser {
 			return current_country_id_;
 		}
 
+		Country& current_country() {
+			return countries_[current_country_id_];
+		}
+
+		Dynasty& current_dynasty() {
+			return dynasties_[countries_[current_country_id_].dynasty_id];
+		}
+
 		Array2D<Tile>& tiles() {
 			return tiles_;
 		}

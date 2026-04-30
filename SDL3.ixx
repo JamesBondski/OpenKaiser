@@ -242,8 +242,8 @@ export namespace sdl {
         }
     }
 
-    export SurfacePtr create_surface(int width, int height, PixelFormat format) {
-        SDL_Surface* surface = SDL_CreateSurface(width, height, format);
+    export SurfacePtr create_surface(size_t width, size_t height, PixelFormat format) {
+        SDL_Surface* surface = SDL_CreateSurface((int)width, (int)height, format);
         if (!surface) {
             throw sdl_error("Error creating surface.");
         }
