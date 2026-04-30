@@ -277,4 +277,10 @@ export namespace sdl {
             throw sdl_error("Error setting texture scale mode.");
         }
     }
+
+    export void set_render_vsync(RendererPtr& renderer, int vsync) {
+        if (!SDL_SetRenderVSync(renderer.get(), vsync)) {
+            throw sdl_error("Error enabling vsync.");
+        }
+    }
 }

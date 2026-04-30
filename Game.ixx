@@ -96,6 +96,7 @@ namespace OpenKaiser {
 			sdl::init();
 			window_ = sdl::create_window("OpenKaiser", width_, height_, 0x20);
 			renderer_ = sdl::create_renderer(window_.get());
+			sdl::set_render_vsync(renderer_, 1);
 
 			sdl::ttf_init();
 
