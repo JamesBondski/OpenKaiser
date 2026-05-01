@@ -89,9 +89,9 @@ namespace OpenKaiser {
 		}
 
 		virtual void Draw(sdl::Point& offset) {
-			sdl::Point new_offset{ offset.x + screen_area_.x, offset.y + screen_area_.y };
-			for (auto element : children_) {
-				sdl::Rect clip_rect{ new_offset.x + element->screen_area().x, new_offset.y + element->screen_area().y, element->screen_area().w, element->screen_area().h };
+				sdl::Point new_offset{ offset.x + static_cast<int>(screen_area_.x), offset.y + static_cast<int>(screen_area_.y) };
+				for (auto element : children_) {
+					sdl::Rect clip_rect{ new_offset.x + static_cast<int>(element->screen_area().x), new_offset.y + static_cast<int>(element->screen_area().y), static_cast<int>(element->screen_area().w), static_cast<int>(element->screen_area().h) };
 				sdl::set_render_clip_rect(renderer_, &clip_rect);
 				element->Draw(new_offset);
 				sdl::set_render_clip_rect(renderer_, nullptr);
@@ -173,7 +173,7 @@ namespace OpenKaiser {
 				sdl::render_texture_centered(renderer_, texture, middle);
 			}
 			else {
-				sdl::FRect output_area{ offset.x + screen_area_.x, offset.y + screen_area_.y, texture->w, texture->h };
+				sdl::FRect output_area{ offset.x + screen_area_.x, offset.y + screen_area_.y, static_cast<float>(texture->w), static_cast<float>(texture->h) };
 				sdl::render_texture(renderer_, texture, output_area);
 			}
 		}
@@ -246,13 +246,13 @@ namespace OpenKaiser {
 
 			int width, height;
 			sdl::get_current_render_output_size(renderer, &width, &height);
-			sdl::FRect own_area{ 0, 0, width, height };
+			sdl::FRect own_area{ 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height) };
 			set_screen_area(own_area);
 		}
 
 		void HandleEvent(sdl::Event& event) override {
 			if (event.type == sdl::EventType::WindowResized) {
-				sdl::FRect own_area{ 0, 0, event.window.data1, event.window.data2 };
+				sdl::FRect own_area{ 0.0f, 0.0f, static_cast<float>(event.window.data1), static_cast<float>(event.window.data2) };
 				set_screen_area(own_area);
 			}
 			UIElement::HandleEvent(event);

@@ -43,7 +43,7 @@ namespace OpenKaiser {
 					for (int nx = x - kScanWidth; nx <= x + kScanWidth; ++nx) {
 						for(int ny = y - kScanWidth; ny <= y + kScanWidth; ++ny) {
 							if (nx >= 0 && nx < tiles.width() && ny >= 0 && ny < tiles.height()) {
-								float distance = std::sqrt((nx - x) * (nx - x) + (ny - y) * (ny - y));
+								float distance = static_cast<float>(std::sqrt((nx - x) * (nx - x) + (ny - y) * (ny - y)));
 								float weight = (distance == 0 ? 2 : 1 / distance);
 
 								count += weight;

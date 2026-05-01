@@ -110,8 +110,9 @@ namespace OpenKaiser {
 			Tile& tile = state->tile(x_, y_);
 			Country& country = state->country(tile.countryId);
 			if (country.population_fed >= country.population) {
-				std::uniform_real_distribution<float> growth_dist(1.03, 1.07);
-				Enqueue<ChangePopulationCountCommand>(x_, y_, growth_dist(random));
+				std::uniform_real_distribution<float> growth_dist(1.03f, 1.07f);
+				int growth_amount = static_cast<int>(tile.population * growth_dist(random)) - tile.population;
+				Enqueue<ChangePopulationCountCommand>(x_, y_, growth_amount);
 			}
 		}
 	};
@@ -139,7 +140,7 @@ namespace OpenKaiser {
 						case BuildingType::Village:
 						case BuildingType::Market:
 						case BuildingType::Town:
-							Enqueue<ChangeResourceAmountCommand>(country.id, ResourceType::Gold, tile.population * gold_dist(random));
+							Enqueue<ChangeResourceAmountCommand>(country.id, ResourceType::Gold, static_cast<int>(tile.population * gold_dist(random)));
 							Enqueue<GrowPopulationCommand>(x, y);
 							break;
 						}

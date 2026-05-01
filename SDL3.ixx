@@ -167,7 +167,7 @@ export namespace sdl {
     }
 
     export void render_texture_centered(RendererPtr& renderer, TexturePtr& texture, const FPoint& target) {
-        FRect target_rect{ target.x - texture->w / 2, target.y - texture->h / 2, texture->w, texture->h };
+        FRect target_rect{ target.x - static_cast<float>(texture->w) / 2, target.y - static_cast<float>(texture->h) / 2, static_cast<float>(texture->w), static_cast<float>(texture->h) };
         render_texture(renderer, texture, target_rect);
 
     }
