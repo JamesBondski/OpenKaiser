@@ -166,18 +166,18 @@ namespace OpenKaiser {
 		Event<std::uint16_t> on_start_human_turn_;
 		std::random_device rd_;
 		std::mt19937 random_;
-		std::queue<std::unique_ptr<Command>> command_queue_;
+		std::list<std::unique_ptr<Command>> command_queue_;
 
 		void Execute(std::unique_ptr<Command> command) {
-			command_queue_.push(std::move(command));
+			command_queue_.push_back(std::move(command));
 
 			while (!command_queue_.empty()) {
 				std::unique_ptr<Command> next = std::move(command_queue_.front());
-				command_queue_.pop();
+				command_queue_.pop_front();
 
 				std::vector<std::unique_ptr<Command>> sub_commands = next->DoExecute(state_, random_);
 				for (auto& cmd : sub_commands) {
-					command_queue_.push(std::move(cmd));
+					command_queue_.push_front(std::move(cmd));
 				}
 			}
 		}
