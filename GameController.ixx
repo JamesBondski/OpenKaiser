@@ -90,11 +90,13 @@ namespace OpenKaiser {
 		std::mt19937 random_;
 		std::list<std::unique_ptr<Command>> command_queue_;
 		PlayerController player_;
+		int command_count_ = 0;
 
 		void Execute(std::unique_ptr<Command> command) {
 			command_queue_.push_back(std::move(command));
 
 			while (!command_queue_.empty()) {
+				command_count_++;
 				std::unique_ptr<Command> next = std::move(command_queue_.front());
 				command_queue_.pop_front();
 
@@ -112,6 +114,10 @@ namespace OpenKaiser {
 
 		PlayerController& player() {
 			return player_;
+		}
+
+		int command_count() {
+			return command_count_;
 		}
 
 		Event<std::uint16_t>& on_start_human_turn() {

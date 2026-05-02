@@ -14,13 +14,12 @@ import Config;
 import Events;
 
 namespace OpenKaiser {
-	export class MiniMap : public UIElement {
+	export class MiniMap : public Image {
 	private:
 		int last_history_count_ = -1;
-		sdl::TexturePtr texture_;
 		std::unordered_map<TileType, sdl::Color> tile_colors_;
 		std::vector<sdl::Color> country_colors_;
-		float last_redraw_time_ = 0;
+		int last_redraw_count_ = -1;
 
 		void Redraw() {
 			Array2D<Tile>& tiles = state_->tiles();
@@ -44,20 +43,15 @@ namespace OpenKaiser {
 		}
 	public:
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resource_manager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
-			UIElement::Init(renderer, resource_manager, state, controller);
+			Image::Init(renderer, resource_manager, state, controller);
 
 			tile_colors_ = Config::LoadTileColors();
 			country_colors_ = Config::LoadCountryColors();
 		}
 
-		void Draw(sdl::Point& offset) override {
-			sdl::FRect output_area = GetOffsetArea(offset);
-			sdl::render_texture(renderer_, texture_, output_area);
-		}
-
 		void Update(float passed_time) override {
-			last_redraw_time_ += passed_time;
-			if (last_redraw_time_ > 500) {
+			if(!texture_ || controller_->command_count() != last_redraw_count_) {
+				last_redraw_count_ = controller_->command_count();
 				Redraw();
 			}
 		}

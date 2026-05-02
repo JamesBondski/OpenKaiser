@@ -104,6 +104,24 @@ namespace OpenKaiser {
 		};
 	};
 
+	export class Image : public UIElement {
+	protected:
+		sdl::TexturePtr texture_;
+	public:
+		sdl::TexturePtr& texture() {
+			return texture_;
+		}
+
+		void set_texture(sdl::TexturePtr& texture) {
+			texture_ = texture;
+		}
+
+		void Draw(sdl::Point& offset) override {
+			sdl::FRect output_area = GetOffsetArea(offset);
+			sdl::render_texture(renderer_, texture_, output_area);
+		}
+	};
+
 	export class Padding : public UIElement {
 	private:
 		float pad_amount_;
