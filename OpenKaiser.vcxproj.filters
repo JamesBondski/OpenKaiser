@@ -18,5 +18,6 @@
     <ClCompile Include="MainState.ixx" />
     <ClCompile Include="Config.ixx" />
     <ClCompile Include="Events.ixx" />
+    <ClCompile Include="Command.ixx" />
   </ItemGroup>
 </Project>

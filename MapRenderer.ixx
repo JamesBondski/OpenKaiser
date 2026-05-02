@@ -31,7 +31,7 @@ namespace OpenKaiser {
 
 		sdl::FPoint offset_{ 0,0 };
 
-		void DrawTileRect(sdl::Point& offset, Tile& current_tile, int x, int y) {
+		void DrawTileRect(sdl::Point& offset, Tile& current_tile, Coordinates coords) {
 			switch (current_tile.type) {
 			case TileType::Grass:
 				sdl::set_render_draw_color(renderer_, { 76, 153, 0, 255 });
@@ -44,31 +44,33 @@ namespace OpenKaiser {
 				break;
 			}
 
-			sdl::FRect rect = { offset.x + screen_area_.x + x * tile_size_, offset.y + screen_area_.y + y * tile_size_, tile_size_, tile_size_ };
+			sdl::FRect rect = { offset.x + screen_area_.x + coords.x * tile_size_, offset.y + screen_area_.y + coords.y * tile_size_, tile_size_, tile_size_ };
 			sdl::render_fill_rect(renderer_, rect);
 		}
 
-		void DrawTileImage(sdl::Point& offset, sdl::TexturePtr& texture, int x, int y) {
-			sdl::FRect rect = { offset.x + screen_area_.x + x * tile_size_, offset.y + screen_area_.y + y * tile_size_, tile_size_, tile_size_ };
+		void DrawTileImage(sdl::Point& offset, sdl::TexturePtr& texture, Coordinates coords) {
+			sdl::FRect rect = { offset.x + screen_area_.x + coords.x * tile_size_, offset.y + screen_area_.y + coords.y * tile_size_, tile_size_, tile_size_ };
 			sdl::render_texture(renderer_, texture, rect);
 		}
 
-		void DrawBorders(sdl::Point& offset, Tile& current_tile, int x, int y)
+
+		// TODO: Rework!
+		void DrawBorders(sdl::Point& offset, Tile& current_tile, Coordinates coords)
 		{
 			if (current_tile.countryId >= 0) {
 				auto cc = country_colors_[current_tile.countryId];
 				sdl::set_render_draw_color(renderer_, cc);
-				if (x > 0 && current_tile.countryId != state_->tile(x - 1, y).countryId) {
-					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + y * tile_size_, offset.x + x * tile_size_, offset.y + (y + 1) * tile_size_);
+				if (coords.x > 0 && current_tile.countryId != state_->tile(coords.x - 1, coords.y).countryId) {
+					sdl::render_line(renderer_, offset.x + coords.x * tile_size_, offset.y + coords.y * tile_size_, offset.x + coords.x * tile_size_, offset.y + (coords.y + 1) * tile_size_);
 				}
-				if (y > 0 && current_tile.countryId != state_->tile(x, y - 1).countryId) {
-					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + y * tile_size_, offset.x + (x + 1) * tile_size_, offset.y + y * tile_size_);
+				if (coords.y > 0 && current_tile.countryId != state_->tile(coords.x, coords.y - 1).countryId) {
+					sdl::render_line(renderer_, offset.x + coords.x * tile_size_, offset.y + coords.y * tile_size_, offset.x + (coords.x + 1) * tile_size_, offset.y + coords.y * tile_size_);
 				}
-				if (x < state_->tiles().width() - 1 && current_tile.countryId != state_->tile(x + 1, y).countryId) {
-					sdl::render_line(renderer_, offset.x + (x + 1) * tile_size_ - 1, offset.y + y * tile_size_, offset.x + (x + 1) * tile_size_ - 1, offset.y + (y + 1) * tile_size_);
+				if (coords.x < state_->tiles().width() - 1 && current_tile.countryId != state_->tile(coords.x + 1, coords.y).countryId) {
+					sdl::render_line(renderer_, offset.x + (coords.x + 1) * tile_size_ - 1, offset.y + coords.y * tile_size_, offset.x + (coords.x + 1) * tile_size_ - 1, offset.y + (coords.y + 1) * tile_size_);
 				}
-				if (y < state_->tiles().height() - 1 && current_tile.countryId != state_->tile(x, y + 1).countryId) {
-					sdl::render_line(renderer_, offset.x + x * tile_size_, offset.y + (y + 1) * tile_size_ - 1, offset.x + (x + 1) * tile_size_, offset.y + (y + 1) * tile_size_ - 1);
+				if (coords.y < state_->tiles().height() - 1 && current_tile.countryId != state_->tile(coords.x, coords.y + 1).countryId) {
+					sdl::render_line(renderer_, offset.x + coords.x * tile_size_, offset.y + (coords.y + 1) * tile_size_ - 1, offset.x + (coords.x + 1) * tile_size_, offset.y + (coords.y + 1) * tile_size_ - 1);
 				}
 			}
 		}
@@ -78,25 +80,25 @@ namespace OpenKaiser {
 		}
 
 		void AddBuildingTexture(BuildingType type, const std::string& path) {
-				building_textures_.insert(std::pair<BuildingType, sdl::TexturePtr>(type, resource_manager_->get_image(path)));
-			}
+			building_textures_.insert(std::pair<BuildingType, sdl::TexturePtr>(type, resource_manager_->get_image(path)));
+		}
 
 	public:
 		void set_tile_size(float tile_size) {
-				tile_size_ = tile_size;
-			}
+			tile_size_ = tile_size;
+		}
 
 		float tile_size() const {
-				return tile_size_;
-			}
+			return tile_size_;
+		}
 
 		void set_render_mode(RenderMode mode) {
-				mode_ = mode;
-			}
+			mode_ = mode;
+		}
 
 		RenderMode& render_mode() {
-				return mode_;
-			}
+			return mode_;
+		}
 
 		void ShowNames() {
 			show_names_ = true;
@@ -107,27 +109,27 @@ namespace OpenKaiser {
 		}
 
 		bool scrollable() const {
-				return scrollable_;
-			}
+			return scrollable_;
+		}
 
 		void set_scrollable(bool scrollable) {
-				scrollable_ = scrollable;
-			}
+			scrollable_ = scrollable;
+		}
 
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resource_manager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
-				UIElement::Init(renderer, resource_manager, state, controller);
+			UIElement::Init(renderer, resource_manager, state, controller);
 
-				country_colors_ = Config::LoadCountryColors();
-				tile_colors_ = Config::LoadTileColors();
+			country_colors_ = Config::LoadCountryColors();
+			tile_colors_ = Config::LoadTileColors();
 
-				set_screen_area(screen_area_);
+			set_screen_area(screen_area_);
 
-				AddTileTexture(TileType::Grass, "data/graphics/tiles/grass.png");
-				AddTileTexture(TileType::Water, "data/graphics/tiles/water.png");
-				AddTileTexture(TileType::Mountain, "data/graphics/tiles/mountain.png");
+			AddTileTexture(TileType::Grass, "data/graphics/tiles/grass.png");
+			AddTileTexture(TileType::Water, "data/graphics/tiles/water.png");
+			AddTileTexture(TileType::Mountain, "data/graphics/tiles/mountain.png");
 
-				AddBuildingTexture(BuildingType::Castle, "data/graphics/tiles/castle.png");
-				AddBuildingTexture(BuildingType::Village, "data/graphics/tiles/village.png");
+			AddBuildingTexture(BuildingType::Castle, "data/graphics/tiles/castle.png");
+			AddBuildingTexture(BuildingType::Village, "data/graphics/tiles/village.png");
 			AddBuildingTexture(BuildingType::Field, "data/graphics/tiles/field.png");
 			AddBuildingTexture(BuildingType::Pasture, "data/graphics/tiles/pasture.png");
 			AddBuildingTexture(BuildingType::Palace, "data/graphics/tiles/palace.png");
@@ -140,24 +142,25 @@ namespace OpenKaiser {
 
 			for (int x = 0; x < (screen_area_.w / tile_size_); x++) {
 				for (int y = 0; y < (screen_area_.h / tile_size_); y++) {
-					if (x >= (state_->tiles().width()- first_tile.x) || y >= (state_->tiles().height() - first_tile.y)) {
+					if (x >= (state_->tiles().width() - first_tile.x) || y >= (state_->tiles().height() - first_tile.y)) {
 						continue;
 					}
 
-					Tile& current_tile = state_->tile(first_tile.x + x, first_tile.y + y);
+					Coordinates coords{ first_tile.x + x, first_tile.y + y };
+					Tile& current_tile = state_->tile(coords);
 					if (mode_ == RenderMode::Rect) {
-						DrawTileRect(offset, current_tile, x, y);
+						DrawTileRect(offset, current_tile, coords);
 					}
 					if (mode_ == RenderMode::Image) {
 						if (current_tile.building != BuildingType::None) {
-							DrawTileImage(offset, building_textures_[current_tile.building], x, y);
+							DrawTileImage(offset, building_textures_[current_tile.building], coords);
 						}
 						else {
-							DrawTileImage(offset, tile_textures_[current_tile.type], x, y);
+							DrawTileImage(offset, tile_textures_[current_tile.type], coords);
 						}
 					}
 
-					DrawBorders(offset, current_tile, x, y);
+					DrawBorders(offset, current_tile, coords);
 				}
 			}
 

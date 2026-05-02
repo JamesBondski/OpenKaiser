@@ -134,6 +134,7 @@
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Command.ixx" />
     <ClCompile Include="Config.ixx" />
     <ClCompile Include="Events.ixx" />
     <ClCompile Include="Game.ixx" />

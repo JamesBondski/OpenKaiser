@@ -42,6 +42,7 @@ export namespace OpenKaiser {
 		std::string name;
 		sdl::Point capital;
 		std::unordered_map<ResourceType, int> resources;
+		std::uint8_t builds_left;
 
 		// Non-Persistant fields
 		int population = 0;
@@ -77,8 +78,26 @@ export namespace OpenKaiser {
 		}
 	};
 
+	export class Rules {
+	private:
+		struct BuildingData {
+			int cost;
+			std::unordered_map<ResourceType, int> production;
+		};
+
+		std::unordered_map<BuildingType, BuildingData> buildings{
+			{BuildingType::Field, { 100, {{ResourceType::Wheat, 50}}}},
+			{BuildingType::Pasture, { 150, {{ResourceType::Livestock, 50}}}}
+		};
+	public:
+		int GetBuildingPrice(BuildingType building) {
+			return buildings[building].cost;
+		}
+	};
+
 	export class WorldState {
 	private:
+		Rules rules_;
 		Array2D<Tile> tiles_;
 		int map_seed_;
 		std::vector<Country> countries_;
@@ -92,6 +111,10 @@ export namespace OpenKaiser {
 		}
 
 		WorldState() {
+		}
+
+		Rules& rules() {
+			return rules_;
 		}
 
 		std::int16_t current_country_id() const {
@@ -112,6 +135,10 @@ export namespace OpenKaiser {
 
 		Tile& tile(size_t x, size_t y) {
 			return tiles_(x, y);
+		}
+
+		Tile& tile(Coordinates coords) {
+			return tile(coords.x, coords.y);
 		}
 
 		std::vector<Country>& countries() {
