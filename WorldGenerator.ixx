@@ -13,7 +13,7 @@ namespace OpenKaiser {
 	export struct WorldConfig {
 		int width = 50;
 		int height = 50;
-		int num_countries = 10;
+		int num_countries = 25;
 	};
 
 	export class FloatMapGenerator : public MapGenerator {
@@ -120,9 +120,10 @@ namespace OpenKaiser {
 			return coords;
 		}
 
-		void GenerateCountries(std::shared_ptr<WorldState> state, int num_countries) {
+		void GenerateCountries(std::shared_ptr<WorldState> state, int num_countries, std::mt19937& gen) {
 			std::ifstream country_names("data/config/country_names.txt");
 			std::string line;
+			std::uniform_int_distribution build_dist(2, 5);
 
 			int count = 0;
 			while (std::getline(country_names, line) && count < num_countries) {
@@ -139,6 +140,7 @@ namespace OpenKaiser {
 				new_country.resources[ResourceType::Wheat] = 0;
 				new_country.resources[ResourceType::Livestock] = 0;
 				new_country.dynasty_id = new_dynasty.id;
+				new_country.builds_left = build_dist(gen);
 				state->countries().push_back(new_country);
 			}
 		}
@@ -166,7 +168,7 @@ namespace OpenKaiser {
 			FloatMapGenerator map_gen;
 			map_gen.Generate(state, gen);
 
-			GenerateCountries(state, config.num_countries);
+			GenerateCountries(state, config.num_countries, gen);
 
 			for (int i = 0; i < config.num_countries; i++) {
 				std::pair<int, int> coords = GetStartingLocation(state, gen);
