@@ -146,21 +146,22 @@ namespace OpenKaiser {
 						continue;
 					}
 
-					Coordinates coords{ first_tile.x + x, first_tile.y + y };
-					Tile& current_tile = state_->tile(coords);
+					Coordinates map_coords{ first_tile.x + x, first_tile.y + y };
+					Coordinates draw_coords{ x, y };
+					Tile& current_tile = state_->tile(map_coords);
 					if (mode_ == RenderMode::Rect) {
-						DrawTileRect(offset, current_tile, coords);
+						DrawTileRect(offset, current_tile, draw_coords);
 					}
 					if (mode_ == RenderMode::Image) {
 						if (current_tile.building != BuildingType::None) {
-							DrawTileImage(offset, building_textures_[current_tile.building], coords);
+							DrawTileImage(offset, building_textures_[current_tile.building], draw_coords);
 						}
 						else {
-							DrawTileImage(offset, tile_textures_[current_tile.type], coords);
+							DrawTileImage(offset, tile_textures_[current_tile.type], draw_coords);
 						}
 					}
 
-					DrawBorders(offset, current_tile, coords);
+					DrawBorders(offset, current_tile, draw_coords);
 				}
 			}
 
