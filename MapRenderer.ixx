@@ -122,6 +122,14 @@ namespace OpenKaiser {
 			}
 
 			Area visible_area = get_visible_area();
+			if (visible_area.x + visible_area.w > state_->tiles().width()) {
+				offset_.x = (state_->tiles().width() - visible_area.w) * tile_size_;
+				visible_area = get_visible_area();
+			}
+			if (visible_area.y + visible_area.h > state_->tiles().height()) {
+				offset_.y = (state_->tiles().height() - visible_area.h) * tile_size_;
+				visible_area = get_visible_area();
+			}
 			on_scroll_.emit(visible_area);
 		}
 
