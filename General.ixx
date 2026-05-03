@@ -17,6 +17,13 @@ namespace OpenKaiser {
         bool operator==(const Coordinates&) const = default;
         auto operator<=>(const Coordinates&) const = default;
     };
+    
+    export enum class Adjacency {
+        Left = 0,
+        Right = 1,
+        Top = 2,
+        Bottom = 3
+    };
 
     export inline std::array<Coordinates, 4> GetAdjacentTiles(const Coordinates& coord) {
         return { {

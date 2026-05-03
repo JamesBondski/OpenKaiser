@@ -25,6 +25,7 @@ namespace OpenKaiser {
 		std::unordered_map<TileType, sdl::Color> tile_colors_;
 
 		float tile_size_ = 64;
+		float border_size_ = 3;
 		RenderMode mode_ = RenderMode::Rect;
 		bool show_names_ = true;
 		bool scrollable_ = true;
@@ -53,25 +54,48 @@ namespace OpenKaiser {
 			sdl::render_texture(renderer_, texture, rect);
 		}
 
+		std::map<Adjacency, Tile> GetTiles(std::array<Coordinates, 4> adjacent_tiles) {
+			std::map<Adjacency, Tile> tiles;
+			int count = 0;
+			for (Coordinates& coords : adjacent_tiles) {
+				if (coords.x > 0 && coords.y > 0 && coords.x < state_->tiles().width() && coords.y < state_->tiles().height()) {
+					tiles.insert(std::pair<Adjacency, Tile>(static_cast<Adjacency>(count++), state_->tile(coords)));
+				}
+			}
+			return tiles;
+		}
 
-		// TODO: Rework!
-		void DrawBorders(sdl::Point& offset, Tile& current_tile, Coordinates coords)
+		void DrawBorders(sdl::Point& offset, Coordinates map_coords, Coordinates draw_coords)
 		{
-			if (current_tile.countryId >= 0) {
-				auto cc = country_colors_[current_tile.countryId];
-				sdl::set_render_draw_color(renderer_, cc);
-				if (coords.x > 0 && current_tile.countryId != state_->tile(coords.x - 1, coords.y).countryId) {
-					sdl::render_line(renderer_, offset.x + coords.x * tile_size_, offset.y + coords.y * tile_size_, offset.x + coords.x * tile_size_, offset.y + (coords.y + 1) * tile_size_);
+			Tile& current_tile = state_->tile(map_coords);
+			if (current_tile.countryId == -1) {
+				return;
+			}
+
+			sdl::set_render_draw_color(renderer_, country_colors_[current_tile.countryId]);
+
+			std::map<Adjacency, Tile> adjacent_tiles = GetTiles(GetAdjacentTiles(map_coords));
+			for (auto adjacent_tile : adjacent_tiles) {
+				if (adjacent_tile.second.countryId == current_tile.countryId) {
+					continue;
 				}
-				if (coords.y > 0 && current_tile.countryId != state_->tile(coords.x, coords.y - 1).countryId) {
-					sdl::render_line(renderer_, offset.x + coords.x * tile_size_, offset.y + coords.y * tile_size_, offset.x + (coords.x + 1) * tile_size_, offset.y + coords.y * tile_size_);
+
+				sdl::FRect tile_rect;
+				switch (adjacent_tile.first) {
+				case Adjacency::Left:
+					tile_rect = { offset.x + draw_coords.x * tile_size_, offset.y + draw_coords.y * tile_size_, border_size_, tile_size_ };
+					break;
+				case Adjacency::Top:
+					tile_rect = { offset.x + draw_coords.x * tile_size_, offset.y + draw_coords.y * tile_size_, tile_size_, border_size_ };
+					break;
+				case Adjacency::Right:
+					tile_rect = { offset.x + draw_coords.x * tile_size_ + tile_size_ - border_size_ - 1, offset.y + draw_coords.y * tile_size_, border_size_, tile_size_ };
+					break;
+				case Adjacency::Bottom:
+					tile_rect = { offset.x + draw_coords.x * tile_size_, offset.y + draw_coords.y * tile_size_ + tile_size_ - border_size_ - 1, tile_size_, border_size_ };
+					break;
 				}
-				if (coords.x < state_->tiles().width() - 1 && current_tile.countryId != state_->tile(coords.x + 1, coords.y).countryId) {
-					sdl::render_line(renderer_, offset.x + (coords.x + 1) * tile_size_ - 1, offset.y + coords.y * tile_size_, offset.x + (coords.x + 1) * tile_size_ - 1, offset.y + (coords.y + 1) * tile_size_);
-				}
-				if (coords.y < state_->tiles().height() - 1 && current_tile.countryId != state_->tile(coords.x, coords.y + 1).countryId) {
-					sdl::render_line(renderer_, offset.x + coords.x * tile_size_, offset.y + (coords.y + 1) * tile_size_ - 1, offset.x + (coords.x + 1) * tile_size_, offset.y + (coords.y + 1) * tile_size_ - 1);
-				}
+				sdl::render_fill_rect(renderer_, tile_rect);
 			}
 		}
 
@@ -161,7 +185,7 @@ namespace OpenKaiser {
 						}
 					}
 
-					DrawBorders(offset, current_tile, draw_coords);
+					DrawBorders(offset, map_coords, draw_coords);
 				}
 			}
 
