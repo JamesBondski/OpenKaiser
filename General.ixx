@@ -33,6 +33,16 @@ namespace OpenKaiser {
             {coord.x, coord.y + 1}
         } };
     }
+
+    export struct Area {
+        int x;
+        int y;
+        int w;
+        int h;
+
+        bool operator==(const Area&) const = default;
+        auto operator<=>(const Area&) const = default;
+    };
 }
 
 namespace std {

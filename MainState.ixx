@@ -20,6 +20,10 @@ namespace OpenKaiser {
 		std::unordered_map<TileType, sdl::Color> tile_colors_;
 		std::vector<sdl::Color> country_colors_;
 		int last_redraw_count_ = -1;
+		Area visible_map_area_;
+		std::weak_ptr<MapRenderer> map_renderer_;
+
+		Connection handle_map_scroll;
 
 		void Redraw() {
 			Array2D<Tile>& tiles = state_->tiles();
@@ -49,11 +53,31 @@ namespace OpenKaiser {
 			country_colors_ = Config::LoadCountryColors();
 		}
 
+		void Draw(sdl::Point& offset) override {
+			Image::Draw(offset);
+
+			// Draw visible area
+			float ratio = screen_area_.w / static_cast<float>(texture_->w);
+			sdl::set_render_draw_color(renderer_, { 255, 255, 255, 255 });
+			sdl::FRect draw_rect{offset.x + screen_area_.x + visible_map_area_.x * ratio, offset.y + screen_area_.y + visible_map_area_.y * ratio, visible_map_area_.w * ratio, visible_map_area_.h * ratio};
+			sdl::render_rect(renderer_, draw_rect);
+		}
+
 		void Update(float passed_time) override {
 			if(!texture_ || controller_->command_count() != last_redraw_count_) {
 				last_redraw_count_ = controller_->command_count();
 				Redraw();
 			}
+		}
+
+		void UpdateVisibleMapArea(Area& visible_area) {
+			visible_map_area_ = visible_area;
+		}
+
+		void AttachToMapRenderer(std::shared_ptr<MapRenderer>& map_renderer) {
+			map_renderer_ = map_renderer;
+			visible_map_area_ = map_renderer->get_visible_area();
+			handle_map_scroll = map_renderer->on_scroll().subscribe(this, &MiniMap::UpdateVisibleMapArea);
 		}
 	};
 
@@ -106,6 +130,10 @@ namespace OpenKaiser {
 
 			UIElement::set_screen_area(screen_area);
 		}
+
+		void AttachToMapRenderer(std::shared_ptr<MapRenderer>& map_renderer) {
+			mini_map_->AttachToMapRenderer(map_renderer);
+		}
 	};
 
 	export class MainState : public GameState {
@@ -126,6 +154,7 @@ namespace OpenKaiser {
 
 			side_bar_ = std::make_shared<SideBar>();
 			AddChild(side_bar_);
+			side_bar_->AttachToMapRenderer(map_renderer_);
 
 			menu_ = std::make_shared<MenuManager>();
 			AddChild(menu_);

@@ -7,6 +7,7 @@ import General;
 import ResourceManager;
 import UI;
 import Config;
+import Events;
 
 using std::uint8_t;
 
@@ -23,6 +24,8 @@ namespace OpenKaiser {
 		std::unordered_map<TileType, sdl::TexturePtr> tile_textures_;
 		std::unordered_map<BuildingType, sdl::TexturePtr> building_textures_;
 		std::unordered_map<TileType, sdl::Color> tile_colors_;
+
+		Event<Area&> on_scroll_;
 
 		float tile_size_ = 64;
 		float border_size_ = 3;
@@ -107,6 +110,21 @@ namespace OpenKaiser {
 			building_textures_.insert(std::pair<BuildingType, sdl::TexturePtr>(type, resource_manager_->get_image(path)));
 		}
 
+		void Scroll(float delta_x, float delta_y) {
+			offset_.x += delta_x;
+			offset_.y += delta_y;
+
+			if (offset_.x < 0) {
+				offset_.x = 0;
+			}
+			if (offset_.y < 0) {
+				offset_.y = 0;
+			}
+
+			Area visible_area = get_visible_area();
+			on_scroll_.emit(visible_area);
+		}
+
 	public:
 		void set_tile_size(float tile_size) {
 			tile_size_ = tile_size;
@@ -120,8 +138,16 @@ namespace OpenKaiser {
 			mode_ = mode;
 		}
 
+		Area get_visible_area() {
+			return Area { static_cast<int>(offset_.x / tile_size_), static_cast<int>(offset_.y / tile_size_), static_cast<int>(screen_area_.w / tile_size_) + 1, static_cast<int>(screen_area_.h / tile_size_) + 1 };
+		}
+
 		RenderMode& render_mode() {
 			return mode_;
+		}
+
+		Event<Area&>& on_scroll() {
+			return on_scroll_;
 		}
 
 		void ShowNames() {
@@ -138,6 +164,11 @@ namespace OpenKaiser {
 
 		void set_scrollable(bool scrollable) {
 			scrollable_ = scrollable;
+		}
+
+		void set_screen_area(sdl::FRect& screen_area) override {
+			UIElement::set_screen_area(screen_area);
+			Scroll(0, 0);
 		}
 
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resource_manager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
@@ -232,24 +263,17 @@ namespace OpenKaiser {
 			if (scrollable_ && event.type == sdl::EventType::KeyDown) {
 				switch (event.key.key) {
 				case 0x4000004fu:
-					offset_.x += tile_size_;
+					Scroll(tile_size_, 0);
 					break;
 				case 0x40000050u:
-					offset_.x -= tile_size_;
+					Scroll(-tile_size_, 0);
 					break;
 				case 0x40000051u:
-					offset_.y += tile_size_;
+					Scroll(0, tile_size_);
 					break;
 				case 0x40000052u:
-					offset_.y -= tile_size_;
+					Scroll(0, -tile_size_);
 					break;
-				}
-
-				if (offset_.x < 0) {
-					offset_.x = 0;
-				}
-				if (offset_.y < 0) {
-					offset_.y = 0;
 				}
 			}
 			UIElement::HandleEvent(event);

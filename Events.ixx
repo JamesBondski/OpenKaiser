@@ -36,6 +36,10 @@ namespace OpenKaiser {
         int next_id_ = 0;
 
     public:
+        Event() = default;
+        Event(const Event&) = delete;
+        Event& operator=(const Event&) = delete;
+
         Connection subscribe(std::function<void(Args...)> callback) {
             int id = next_id_++;
             callbacks_[id] = std::move(callback);

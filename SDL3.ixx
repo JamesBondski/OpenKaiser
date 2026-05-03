@@ -128,6 +128,12 @@ export namespace sdl {
         }
 	}
 
+    export void render_rect(RendererPtr& renderer, const FRect rect) {
+        if (!SDL_RenderRect(renderer.get(), &rect)) {
+            throw sdl_error("Failed to render rectangle");
+        }
+    }
+
 	export void render_line(RendererPtr& renderer, float x1, float y1, float x2, float y2) {
         if(!SDL_RenderLine(renderer.get(), x1, y1, x2, y2)) {
             throw sdl_error("Failed to draw line");
