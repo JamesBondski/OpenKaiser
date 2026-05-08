@@ -14,6 +14,10 @@ import Config;
 import Events;
 
 namespace OpenKaiser {
+	const float kMenuHeight = 200;
+	const float kSideBarWidth = 260;
+	const float kSideBarPadding = 5;
+
 	export class MiniMap : public Image {
 	private:
 		int last_history_count_ = -1;
@@ -53,13 +57,13 @@ namespace OpenKaiser {
 			country_colors_ = Config::LoadCountryColors();
 		}
 
-		void Draw(sdl::Point& offset) override {
-			Image::Draw(offset);
+		void Draw() override {
+			Image::Draw();
 
 			// Draw visible area
 			float ratio = screen_area_.w / static_cast<float>(texture_->w);
 			sdl::set_render_draw_color(renderer_, { 255, 255, 255, 255 });
-			sdl::FRect draw_rect{offset.x + screen_area_.x + visible_map_area_.x * ratio, offset.y + screen_area_.y + visible_map_area_.y * ratio, visible_map_area_.w * ratio, visible_map_area_.h * ratio};
+			sdl::FRect draw_rect{screen_area_.x + visible_map_area_.x * ratio,  screen_area_.y + visible_map_area_.y * ratio, visible_map_area_.w * ratio, visible_map_area_.h * ratio};
 			sdl::render_rect(renderer_, draw_rect);
 		}
 
@@ -81,7 +85,7 @@ namespace OpenKaiser {
 		}
 	};
 
-	export class SideBar : public UIElement {
+	export class SideBar : public Padding {
 	private:
 		std::shared_ptr<MiniMap> mini_map_;
 		std::shared_ptr<VerticalStack> stack_;
@@ -91,31 +95,29 @@ namespace OpenKaiser {
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			UIElement::Init(renderer, resources, state, controller);
 
-			padding_ = std::make_shared<Padding>();
-			padding_->set_pad_amount(5);
-			padding_->set_fill(true);
-			AddChild(padding_);
+			set_pad_amount(kSideBarPadding);
 
 			stack_ = std::make_shared<VerticalStack>();
-			padding_->AddChild(stack_);
+			AddChild(stack_);
 
 			mini_map_ = std::make_shared<MiniMap>();
+			mini_map_->set_layout({kSideBarWidth - 2 * kSideBarPadding, LayoutMode::Fixed, 1, LayoutMode::Ratio });
 			stack_->AddChild(mini_map_);
 
 			sdl::Color text_color{ 255, 255, 255, 255 };
 			std::function<std::string()> text_getter = [this]() { return "Country: " + state_->current_country().name; };
 			std::shared_ptr<DynamicTextElement> current_player_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
-			current_player_text->screen_area().h = 25;
+			current_player_text->set_layout({0, LayoutMode::Fill, 25, LayoutMode::Fixed});
 			stack_->AddChild(current_player_text);
 
 			text_getter = [this]() { return "Year: " + std::to_string(state_->year()); };
 			std::shared_ptr<DynamicTextElement> current_year_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
-			current_year_text->screen_area().h = 25;
+			current_year_text->set_layout({ 0, LayoutMode::Fill, 25, LayoutMode::Fixed });
 			stack_->AddChild(current_year_text);
 
 			text_getter = [this]() { return "Gold: " + std::to_string(state_->current_country().resources[ResourceType::Gold]); };
 			std::shared_ptr<DynamicTextElement> gold_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
-			gold_text->screen_area().h = 25;
+			gold_text->set_layout({ 0, LayoutMode::Fill, 25, LayoutMode::Fixed });
 			stack_->AddChild(gold_text);
 
 			set_screen_area(screen_area_);
@@ -128,7 +130,7 @@ namespace OpenKaiser {
 				mini_map_->set_screen_area(new_height);
 			}
 
-			UIElement::set_screen_area(screen_area);
+			Padding::set_screen_area(screen_area);
 		}
 
 		void AttachToMapRenderer(std::shared_ptr<MapRenderer>& map_renderer) {
@@ -141,6 +143,8 @@ namespace OpenKaiser {
 		std::shared_ptr<MapRenderer> map_renderer_;
 		std::shared_ptr<MenuManager> menu_;
 		std::shared_ptr<SideBar> side_bar_;
+		std::shared_ptr<HorizontalStack> main_stack_;
+		std::shared_ptr<VerticalStack> left_stack_;
 
 		Connection human_turn_;
 
@@ -148,16 +152,26 @@ namespace OpenKaiser {
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			GameState::Init(renderer, resources, state, controller);
 
-			map_renderer_ = std::make_shared<MapRenderer>();
-			AddChild(map_renderer_);
-			map_renderer_->set_render_mode(RenderMode::Image);
+			main_stack_ = std::make_shared<HorizontalStack>();
+			AddChild(main_stack_);
+
+			left_stack_ = std::make_shared<VerticalStack>();
+			main_stack_->AddChild(left_stack_);
+			left_stack_->set_layout({ 0, LayoutMode::Fill, 0, LayoutMode::Fill });
 
 			side_bar_ = std::make_shared<SideBar>();
-			AddChild(side_bar_);
+			main_stack_->AddChild(side_bar_);
+			side_bar_->set_layout({ kSideBarWidth, LayoutMode::Fixed, 0, LayoutMode::Fill });
+
+			map_renderer_ = std::make_shared<MapRenderer>();
+			left_stack_->AddChild(map_renderer_);
+			map_renderer_->set_render_mode(RenderMode::Image);
+			map_renderer_->set_layout({ 0, LayoutMode::Fill, 0, LayoutMode::Fill });
 			side_bar_->AttachToMapRenderer(map_renderer_);
 
 			menu_ = std::make_shared<MenuManager>();
-			AddChild(menu_);
+			left_stack_->AddChild(menu_);
+			menu_->set_layout({0, LayoutMode::Fill, kMenuHeight, LayoutMode::Fixed });
 
 			auto root_item = menu_->get_root_item();
 			std::shared_ptr<MenuItem> end_turn = std::make_shared<MenuItem>();
@@ -177,24 +191,6 @@ namespace OpenKaiser {
 			human_turn_ = this->controller_->on_start_human_turn().subscribe(this, &MainState::HandleStartHumanTurn);
 
 			set_screen_area(screen_area_);
-		}
-
-		void set_screen_area(sdl::FRect& screen_area) override {
-			GameState::set_screen_area(screen_area);
-
-			if (map_renderer_ && menu_) {
-				const int kMenuHeight = 200;
-				const int kSideBarWidth = 260;
-
-				sdl::FRect map_area(0, 0, screen_area_.w - kSideBarWidth, screen_area_.h - kMenuHeight);
-				map_renderer_->set_screen_area(map_area);
-
-				sdl::FRect menu_area{ 0, map_area.y + map_area.h, screen_area_.w, kMenuHeight };
-				menu_->set_screen_area(menu_area);
-
-				sdl::FRect side_bar_area{ map_area.w, 0, kSideBarWidth, screen_area_.h - kMenuHeight };
-				side_bar_->set_screen_area(side_bar_area);
-			}
 		}
 
 		void HandleStartHumanTurn(std::uint16_t countryId) {

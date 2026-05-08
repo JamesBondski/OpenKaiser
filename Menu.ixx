@@ -78,7 +78,7 @@ namespace OpenKaiser {
 				child->parent = parent.get();
 			}
 
-		void Draw(sdl::Point& offset) override {
+		void Draw() override {
 			sdl::set_render_draw_color(renderer_, button_color_);
 
 			int item_count = 0;
@@ -87,8 +87,8 @@ namespace OpenKaiser {
 					if (item_count < current_item_->childItems.size()) {
 						auto item = current_item_->childItems[item_count];
 						sdl::FRect item_area{
-							offset.x + screen_area_.x + padding_ + (padding_ + item_width_) * col,
-							offset.y + screen_area_.y + padding_ + (padding_ + item_height_) * row,
+							screen_area_.x + padding_ + (padding_ + item_width_) * col,
+							screen_area_.y + padding_ + (padding_ + item_height_) * row,
 							item_width_,
 							item_height_
 						};

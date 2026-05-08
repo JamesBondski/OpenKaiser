@@ -71,8 +71,7 @@ namespace OpenKaiser {
 			sdl::set_render_draw_color(renderer_, { 11, 11, 11, 255 });
 			sdl::render_clear(renderer_);
 
-			sdl::Point root_offset{ 0,0 };
-			State()->Draw(root_offset);
+			State()->Draw();
 
 			sdl::render_present(renderer_);
 		}

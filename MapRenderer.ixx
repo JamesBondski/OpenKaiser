@@ -35,7 +35,7 @@ namespace OpenKaiser {
 
 		sdl::FPoint offset_{ 0,0 };
 
-		void DrawTileRect(sdl::Point& offset, Tile& current_tile, Coordinates coords) {
+		void DrawTileRect(Tile& current_tile, Coordinates coords) {
 			switch (current_tile.type) {
 			case TileType::Grass:
 				sdl::set_render_draw_color(renderer_, { 76, 153, 0, 255 });
@@ -48,12 +48,12 @@ namespace OpenKaiser {
 				break;
 			}
 
-			sdl::FRect rect = { offset.x + screen_area_.x + coords.x * tile_size_, offset.y + screen_area_.y + coords.y * tile_size_, tile_size_, tile_size_ };
+			sdl::FRect rect = { screen_area_.x + coords.x * tile_size_, screen_area_.y + coords.y * tile_size_, tile_size_, tile_size_ };
 			sdl::render_fill_rect(renderer_, rect);
 		}
 
-		void DrawTileImage(sdl::Point& offset, sdl::TexturePtr& texture, Coordinates coords) {
-			sdl::FRect rect = { offset.x + screen_area_.x + coords.x * tile_size_, offset.y + screen_area_.y + coords.y * tile_size_, tile_size_, tile_size_ };
+		void DrawTileImage( sdl::TexturePtr& texture, Coordinates coords) {
+			sdl::FRect rect = { screen_area_.x + coords.x * tile_size_, screen_area_.y + coords.y * tile_size_, tile_size_, tile_size_ };
 			sdl::render_texture(renderer_, texture, rect);
 		}
 
@@ -68,7 +68,7 @@ namespace OpenKaiser {
 			return tiles;
 		}
 
-		void DrawBorders(sdl::Point& offset, Coordinates map_coords, Coordinates draw_coords)
+		void DrawBorders(Coordinates map_coords, Coordinates draw_coords)
 		{
 			Tile& current_tile = state_->tile(map_coords);
 			if (current_tile.countryId == -1) {
@@ -86,16 +86,16 @@ namespace OpenKaiser {
 				sdl::FRect tile_rect;
 				switch (adjacent_tile.first) {
 				case Adjacency::Left:
-					tile_rect = { offset.x + draw_coords.x * tile_size_, offset.y + draw_coords.y * tile_size_, border_size_, tile_size_ };
+					tile_rect = { draw_coords.x * tile_size_, draw_coords.y * tile_size_, border_size_, tile_size_ };
 					break;
 				case Adjacency::Top:
-					tile_rect = { offset.x + draw_coords.x * tile_size_, offset.y + draw_coords.y * tile_size_, tile_size_, border_size_ };
+					tile_rect = {  draw_coords.x * tile_size_, draw_coords.y * tile_size_, tile_size_, border_size_ };
 					break;
 				case Adjacency::Right:
-					tile_rect = { offset.x + draw_coords.x * tile_size_ + tile_size_ - border_size_ - 1, offset.y + draw_coords.y * tile_size_, border_size_, tile_size_ };
+					tile_rect = { draw_coords.x * tile_size_ + tile_size_ - border_size_ - 1, draw_coords.y * tile_size_, border_size_, tile_size_ };
 					break;
 				case Adjacency::Bottom:
-					tile_rect = { offset.x + draw_coords.x * tile_size_, offset.y + draw_coords.y * tile_size_ + tile_size_ - border_size_ - 1, tile_size_, border_size_ };
+					tile_rect = { draw_coords.x * tile_size_, draw_coords.y * tile_size_ + tile_size_ - border_size_ - 1, tile_size_, border_size_ };
 					break;
 				}
 				sdl::render_fill_rect(renderer_, tile_rect);
@@ -198,7 +198,7 @@ namespace OpenKaiser {
 			AddBuildingTexture(BuildingType::Palace, "data/graphics/tiles/palace.png");
 		}
 
-		void Draw(sdl::Point& offset) override {
+		void Draw() override {
 			sdl::Point first_tile;
 			first_tile.x = (int)offset_.x / (int)tile_size_;
 			first_tile.y = (int)offset_.y / (int)tile_size_;
@@ -213,26 +213,26 @@ namespace OpenKaiser {
 					Coordinates draw_coords{ x, y };
 					Tile& current_tile = state_->tile(map_coords);
 					if (mode_ == RenderMode::Rect) {
-						DrawTileRect(offset, current_tile, draw_coords);
+						DrawTileRect(current_tile, draw_coords);
 					}
 					if (mode_ == RenderMode::Image) {
 						if (current_tile.building != BuildingType::None) {
-							DrawTileImage(offset, building_textures_[current_tile.building], draw_coords);
+							DrawTileImage(building_textures_[current_tile.building], draw_coords);
 						}
 						else {
-							DrawTileImage(offset, tile_textures_[current_tile.type], draw_coords);
+							DrawTileImage(tile_textures_[current_tile.type], draw_coords);
 						}
 					}
 
-					DrawBorders(offset, map_coords, draw_coords);
+					DrawBorders(map_coords, draw_coords);
 				}
 			}
 
 			if (show_names_) {
 				for (auto country : state_->countries()) {
 					sdl::FPoint target_position = {
-						offset.x + screen_area_.x + (country.capital.x - first_tile.x) * tile_size_ + tile_size_ / 2,
-						offset.y + screen_area_.y + (country.capital.y - first_tile.y) * tile_size_ + tile_size_ / 2
+						screen_area_.x + (country.capital.x - first_tile.x) * tile_size_ + tile_size_ / 2,
+						screen_area_.y + (country.capital.y - first_tile.y) * tile_size_ + tile_size_ / 2
 					};
 
 					sdl::TexturePtr texture;
