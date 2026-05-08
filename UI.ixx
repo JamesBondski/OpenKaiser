@@ -105,6 +105,9 @@ namespace OpenKaiser {
 			case LayoutMode::Percent:
 				return screen_area_.h * child->layout().height / 100;
 			case LayoutMode::Ratio:
+				if (child->layout().width_mode != LayoutMode::Fixed) {
+					throw OpenKaiserError("Width needs to be fixed to use LayoutMode::Ratio.");
+				}
 				return child->layout().width * child->layout().height;
 			case LayoutMode::Fill:
 				return 0;
@@ -122,6 +125,9 @@ namespace OpenKaiser {
 			case LayoutMode::Percent:
 				return screen_area_.w * child->layout().width / 100;
 			case LayoutMode::Ratio:
+				if (child->layout().height_mode != LayoutMode::Fixed) {
+					throw OpenKaiserError("Height needs to be fixed to use LayoutMode::Ratio.");
+				}
 				return child->layout().width * child->layout().height;
 			}
 			return 0;
