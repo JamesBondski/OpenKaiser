@@ -6,6 +6,7 @@ import WorldState;
 import ResourceManager;
 import General;
 import GameController;
+import Events;
 
 namespace OpenKaiser {
 	export enum class LayoutMode {
@@ -166,6 +167,107 @@ namespace OpenKaiser {
 			element->Init(renderer_, resource_manager_, state_, controller_);
 			element->set_parent(this);
 			children_.push_back(element);
+		}
+
+		void RemoveChildren() {
+			children_.clear();
+		}
+	};
+
+	export class Button : public UIElement {
+	private:
+		std::string text_;
+		sdl::Keycode hotkey_;
+		sdl::Color background_color_;
+		sdl::Color text_color_;
+		float text_size_ = 16.0f;
+		Event<UIElement*> on_action_;
+
+		sdl::TexturePtr text_texture_;
+		sdl::FPoint mid_point_;
+
+		void UpdateTexture() {
+			if (text_.empty()) {
+				text_texture_.reset();
+			}
+			else {
+				if (!renderer_) {
+					return;
+				}
+
+				text_texture_ = resource_manager_->get_text(text_, text_size_, text_color_);
+			}
+		}
+	public:
+		Event<UIElement*>& on_action() {
+			return on_action_;
+		}
+
+		const std::string& text() const {
+			return text_;
+		}
+
+		void set_text(const std::string& text) {
+			text_ = text;
+			UpdateTexture();
+		}
+
+		const sdl::Keycode hotkey() const {
+			return hotkey_;
+		}
+
+		void set_hotkey(sdl::Keycode hotkey) {
+			hotkey_ = hotkey;
+		}
+
+		const sdl::Color& background_color() const {
+			return background_color_;
+		}
+
+		void set_background_color(const sdl::Color& color) {
+			background_color_ = color;
+		}
+
+		const sdl::Color& text_color() const {
+			return text_color_;
+		}
+
+		void set_text_color(const sdl::Color& color) {
+			text_color_ = color;
+		}
+
+		float text_size() const {
+			return text_size_;
+		}
+
+		void set_text_size(float size) {
+			text_size_ = size;
+			UpdateTexture();
+		}
+
+		void set_screen_area(sdl::FRect& rect) override {
+			UIElement::set_screen_area(rect);
+			mid_point_ = {screen_area_.x + screen_area_.w / 2, screen_area_.y + screen_area_.h / 2};
+		}
+
+		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
+			UIElement::Init(renderer, resources, state, controller);
+			UpdateTexture();
+		}
+
+		void Draw() override {
+			sdl::set_render_draw_color(renderer_, background_color_);
+			sdl::render_fill_rect(renderer_, screen_area_);
+
+			sdl::render_texture_centered(renderer_, text_texture_, mid_point_);
+		}
+
+		void HandleEvent(sdl::Event& event) override {
+			if (event.type == sdl::EventType::KeyDown) {
+				if (event.key.key == hotkey_) {
+					on_action_.emit(this);
+				}
+			}
 		}
 	};
 

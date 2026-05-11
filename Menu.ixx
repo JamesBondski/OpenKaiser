@@ -6,6 +6,7 @@ import ResourceManager;
 import General;
 import UI;
 import WorldState;
+import Events;
 
 namespace OpenKaiser {
 	export enum class ResultAction {
@@ -22,7 +23,7 @@ namespace OpenKaiser {
 		std::function<ResultAction(const std::string)> callback;
 	};
 
-	export class MenuManager : public UIElement {
+	export class MenuManager : public HorizontalStack {
 	private:
 		std::shared_ptr<MenuItem> root_item_;
 		std::shared_ptr<MenuItem> current_item_;
@@ -36,6 +37,40 @@ namespace OpenKaiser {
 
 		sdl::Color button_color_ = { 45, 52, 64, 255 };
 		sdl::Color text_color_ = { 245, 245, 245, 255 };
+
+		std::vector<std::shared_ptr<VerticalStack>> columns_;
+		std::vector<Connection> button_connections_;
+
+		void HandleButtonClick(UIElement* button) {
+			auto item = get_item_by_name(button->id());
+			item->callback(button->id());
+		}
+
+		void UpdateButtons() {
+			button_connections_.clear();
+			for (auto column : columns_) {
+				column->RemoveChildren();
+			}
+
+			int column_ = 0;
+			int count = 0;
+			for (auto item : current_item_->childItems) {
+				std::shared_ptr<Button> button = std::make_shared<Button>();
+				button->set_text(item->text);
+				button->set_id(item->name);
+				button->set_background_color(button_color_);
+				button->set_text_color(text_color_);
+				button->set_hotkey(item->hotkey);
+				button_connections_.push_back(button->on_action().subscribe(this, &MenuManager::HandleButtonClick));
+				button->set_layout({ 0, LayoutMode::Fill, 0, LayoutMode::Fill });
+				columns_[column_]->AddChild(button);
+				count++;
+				if (count == num_rows_) {
+					column_++;
+					count = 0;
+				}
+			}
+		}
 	public:
 		MenuManager() {
 			root_item_ = std::make_shared<MenuItem>();
@@ -43,77 +78,45 @@ namespace OpenKaiser {
 		}
 
 		std::shared_ptr<MenuItem> get_item_by_name(const std::string& name) {
-				std::stack<std::shared_ptr<MenuItem>> search_list;
-				search_list.push(root_item_);
+			std::stack<std::shared_ptr<MenuItem>> search_list;
+			search_list.push(root_item_);
 
-				while (!search_list.empty()) {
-					std::shared_ptr<MenuItem>& item = search_list.top();
-					search_list.pop();
+			while (!search_list.empty()) {
+				std::shared_ptr<MenuItem>& item = search_list.top();
+				search_list.pop();
 
-					if (item->name == name) {
-						return item;
-					}
-
-					for (auto& child_item : item->childItems) {
-						search_list.push(child_item);
-					}
+				if (item->name == name) {
+					return item;
 				}
-				return nullptr;
+
+				for (auto& child_item : item->childItems) {
+					search_list.push(child_item);
+				}
 			}
+			return nullptr;
+		}
 
-		std::shared_ptr<MenuItem>& get_root_item() {
-				return root_item_;
-			}
-
-		void set_screen_area(sdl::FRect& screen_area) override {
-				UIElement::set_screen_area(screen_area);
-
-				item_height_ = (screen_area.h - (num_rows_ + 1) * padding_) / num_rows_;
-				item_width_ = (screen_area.w - (num_columns_ + 1) * padding_) / num_columns_;
-			}
-
+		const std::shared_ptr<MenuItem>& get_root_item() const {
+			return root_item_;
+		}
 
 		void add_item(std::shared_ptr<MenuItem>& parent, std::shared_ptr<MenuItem>& child) {
-				parent->childItems.push_back(child);
-				child->parent = parent.get();
-			}
-
-		void Draw() override {
-			sdl::set_render_draw_color(renderer_, button_color_);
-
-			int item_count = 0;
-			for (int col = 0; col < num_columns_; col++) {
-				for (int row = 0; row < num_rows_; row++) {
-					if (item_count < current_item_->childItems.size()) {
-						auto item = current_item_->childItems[item_count];
-						sdl::FRect item_area{
-							screen_area_.x + padding_ + (padding_ + item_width_) * col,
-							screen_area_.y + padding_ + (padding_ + item_height_) * row,
-							item_width_,
-							item_height_
-						};
-						sdl::render_fill_rect(renderer_, item_area);
-
-						auto texture = resource_manager_->get_text(item->text, 16, text_color_.r, text_color_.g, text_color_.b);
-						sdl::FPoint mid = { item_area.x + item_area.w / 2, item_area.y + item_area.h / 2 };
-						sdl::render_texture_centered(renderer_, texture, mid);
-						item_count++;
-					}
-				}
-			}
-		}
-		void HandleEvent(sdl::Event& event) override {
-			if (event.type == sdl::EventType::KeyDown) {
-				for (auto child : current_item_->childItems) {
-					if (event.key.key == child->hotkey) {
-						auto result = child->callback(child->name);
-						if (result == ResultAction::Back) {
-							current_item_ = get_item_by_name(current_item_->parent->name);
-						}
-					}
-				}
-			}
+			parent->childItems.push_back(child);
+			child->parent = parent.get();
+			UpdateButtons();
 		}
 
+		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
+			UIElement::Init(renderer, resources, state, controller);
+
+			for (int i = 0; i < num_columns_; i++) {
+				std::shared_ptr<VerticalStack> stack = std::make_shared<VerticalStack>();
+				stack->set_layout({ 0, LayoutMode::Fill, 0, LayoutMode::Fill });
+				AddChild(stack);
+				columns_.push_back(stack);
+			}
+
+			UpdateButtons();
+		}
 	};
 }
