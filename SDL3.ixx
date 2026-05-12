@@ -79,6 +79,7 @@ export namespace sdl {
         if (!window) {
             throw sdl_error("Failed to create window");
         }
+
         return WindowPtr(window);
     }
 
@@ -289,4 +290,6 @@ export namespace sdl {
             throw sdl_error("Error enabling vsync.");
         }
     }
+
+
 }

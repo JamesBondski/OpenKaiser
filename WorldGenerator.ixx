@@ -3,6 +3,7 @@ export module WorldGenerator;
 import std;
 import WorldState;
 import General;
+import Logging;
 
 namespace OpenKaiser {
 
@@ -162,7 +163,7 @@ namespace OpenKaiser {
 			std::uniform_int_distribution<int> seed_dist;
 			int seed = seed_dist(gen);
 			gen.seed(seed);
-			std::cout << "Map seed: " << seed << std::endl;
+			Logger::Info() << "Generating map, map seed: " << seed;
 			state->set_map_seed(seed);
 
 			FloatMapGenerator map_gen;
@@ -188,6 +189,7 @@ namespace OpenKaiser {
 
 				state->country(i).capital = { coords.first, coords.second };
 			}
+			Logger::Info() << "Finished generating map.";
 			return state;
 		}
 	};

@@ -9,6 +9,7 @@ import ResourceManager;
 import MainState;
 import GameController;
 import UI;
+import Logging;
 
 using std::uint8_t;
 
@@ -86,12 +87,12 @@ namespace OpenKaiser {
 
 	public:
 		void Init() {
-			std::cout << "Initializing World...\n";
+			Logger::Info() << "Initializing World...";
 
 			controller_ = std::make_shared<GameController>();
 			world_ = controller_->StartGame();
 
-			std::cout << "Initializing SDL...\n";
+			Logger::Info() << "Initializing SDL...";
 			sdl::init();
 			window_ = sdl::create_window("OpenKaiser", width_, height_, 0x20);
 			renderer_ = sdl::create_renderer(window_.get());
@@ -99,23 +100,27 @@ namespace OpenKaiser {
 
 			sdl::ttf_init();
 
-			std::cout << "Initializung UI...\n";
+			Logger::Info() << "Initializung UI...";
 			resource_manager_.reset(new ResourceManager());
 			resource_manager_->Init(renderer_);
 
 			AddGameState<MainState>("main");
 			current_state_ = "main";
+
+			Logger::Info() << "Initialization complete.";
 		}
 
 		void Run() {
-			std::cout << "Running...\n";
+			Logger::Info() << "Running...";
 			try {
 				while (Update()) {
 					Draw();
 				}
 			}
 			catch (const sdl::sdl_error&) {
+				Logger::Warning() << "Exception caught, trying to save the world...";
 				world_->Save("save/crash.txt");
+				Logger::Warning() << "World saved!";
 				throw;
 			}
 		}

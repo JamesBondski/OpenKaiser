@@ -139,6 +139,7 @@
     <ClCompile Include="Events.ixx" />
     <ClCompile Include="Game.ixx" />
     <ClCompile Include="GameController.ixx" />
+    <ClCompile Include="Logging.ixx" />
     <ClCompile Include="UI.ixx" />
     <ClCompile Include="General.ixx" />
     <ClCompile Include="MainState.ixx" />

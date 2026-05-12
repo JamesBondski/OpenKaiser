@@ -1,9 +1,11 @@
 import Game;
 import std;
+import Logging;
 
 int main()
 {
 	try {
+		OpenKaiser::Logger::InitBoth("openkaiser.log", OpenKaiser::LogSeverity::Debug);
 		auto game = OpenKaiser::Game();
 		game.Init();
 		game.Run();

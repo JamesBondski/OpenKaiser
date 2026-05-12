@@ -1,3 +1,6 @@
+module;
+#include <plog/Log.h>
+
 export module UI;
 
 import std;
@@ -187,6 +190,7 @@ namespace OpenKaiser {
 		sdl::FPoint mid_point_;
 
 		void UpdateTexture() {
+			PLOG_INFO << "Updating texture...";
 			if (text_.empty()) {
 				text_texture_.reset();
 			}

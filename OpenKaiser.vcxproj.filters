@@ -19,5 +19,6 @@
     <ClCompile Include="Config.ixx" />
     <ClCompile Include="Events.ixx" />
     <ClCompile Include="Command.ixx" />
+    <ClCompile Include="Logging.ixx" />
   </ItemGroup>
 </Project>
