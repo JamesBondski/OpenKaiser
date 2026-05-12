@@ -1,3 +1,6 @@
+module;
+#include <plog/Log.h>
+
 export module ResourceManager;
 
 import std;
@@ -56,7 +59,7 @@ namespace OpenKaiser {
 			if (texture != textures_.end()) {
 				return texture->second;
 			}
-
+			PLOG_DEBUG << "Loading image " << path;
 			auto [it, inserted] = textures_.insert(std::pair<std::string, sdl::TexturePtr>(path, sdl::load_texture(renderer_, path)));
 			return it->second;
 		}
@@ -79,7 +82,7 @@ namespace OpenKaiser {
 				return text_it->second;
 			}
 			else {
-
+				PLOG_DEBUG << "Rendering text '" << text << "' (size " << size << "), RGB(" << color.r << "," << color.g << "," << color.b << ")";
 				sdl::TexturePtr rendered = sdl::ttf_render_text(renderer_, font_it->second, text, color);
 				auto [it, inserted] = texts_.insert(std::pair<TextConfig, sdl::TexturePtr>(config, rendered));
 				return it->second;

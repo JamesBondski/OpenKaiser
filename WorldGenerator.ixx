@@ -1,3 +1,7 @@
+module;
+
+#include <plog/Log.h>
+
 export module WorldGenerator;
 
 import std;
@@ -163,7 +167,7 @@ namespace OpenKaiser {
 			std::uniform_int_distribution<int> seed_dist;
 			int seed = seed_dist(gen);
 			gen.seed(seed);
-			Logger::Info() << "Generating map, map seed: " << seed;
+			PLOG_INFO << "Generating map, map seed: " << seed;
 			state->set_map_seed(seed);
 
 			FloatMapGenerator map_gen;
@@ -189,7 +193,7 @@ namespace OpenKaiser {
 
 				state->country(i).capital = { coords.first, coords.second };
 			}
-			Logger::Info() << "Finished generating map.";
+			PLOG_INFO << "Finished generating map.";
 			return state;
 		}
 	};

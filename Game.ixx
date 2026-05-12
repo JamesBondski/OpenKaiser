@@ -1,3 +1,7 @@
+module;
+
+#include <plog/Log.h>
+
 export module Game;
 import std;
 import SDL3;
@@ -9,7 +13,6 @@ import ResourceManager;
 import MainState;
 import GameController;
 import UI;
-import Logging;
 
 using std::uint8_t;
 
@@ -87,12 +90,12 @@ namespace OpenKaiser {
 
 	public:
 		void Init() {
-			Logger::Info() << "Initializing World...";
+			PLOG_INFO << "Initializing World...";
 
 			controller_ = std::make_shared<GameController>();
 			world_ = controller_->StartGame();
 
-			Logger::Info() << "Initializing SDL...";
+			PLOG_INFO << "Initializing SDL...";
 			sdl::init();
 			window_ = sdl::create_window("OpenKaiser", width_, height_, 0x20);
 			renderer_ = sdl::create_renderer(window_.get());
@@ -100,27 +103,27 @@ namespace OpenKaiser {
 
 			sdl::ttf_init();
 
-			Logger::Info() << "Initializung UI...";
+			PLOG_INFO << "Initializung UI...";
 			resource_manager_.reset(new ResourceManager());
 			resource_manager_->Init(renderer_);
 
 			AddGameState<MainState>("main");
 			current_state_ = "main";
 
-			Logger::Info() << "Initialization complete.";
+			PLOG_INFO << "Initialization complete.";
 		}
 
 		void Run() {
-			Logger::Info() << "Running...";
+			PLOG_INFO << "Running...";
 			try {
 				while (Update()) {
 					Draw();
 				}
 			}
 			catch (const sdl::sdl_error&) {
-				Logger::Warning() << "Exception caught, trying to save the world...";
+				PLOG_WARNING << "Exception caught, trying to save the world...";
 				world_->Save("save/crash.txt");
-				Logger::Warning() << "World saved!";
+				PLOG_WARNING << "World saved!";
 				throw;
 			}
 		}

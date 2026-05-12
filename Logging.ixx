@@ -13,7 +13,7 @@ export module Logging;
 import std;
 
 namespace plog {
-    class ConsoleFormatter {
+    export class ConsoleFormatter {
     public:
         static util::nstring header() {
             return util::nstring();
@@ -51,52 +51,6 @@ namespace OpenKaiser {
         Verbose = 6
     };
 
-    export class LogStream {
-    public:
-        LogStream(plog::Severity severity, std::source_location location = std::source_location::current()) 
-            : severity_(severity), location_(location) {}
-
-        ~LogStream() {
-            if (!moved_ && !stream_.str().empty()) {
-                plog::Record record(severity_, location_.function_name(), location_.line(), 
-                                   location_.file_name(), nullptr, 0);
-                record.ref() << stream_.str();
-                *plog::get() += record;
-            }
-        }
-
-        LogStream(const LogStream&) = delete;
-        LogStream& operator=(const LogStream&) = delete;
-
-        LogStream(LogStream&& other) noexcept 
-            : severity_(other.severity_), 
-              location_(other.location_),
-              stream_(std::move(other.stream_)) {
-            other.moved_ = true;
-        }
-
-        template<typename T>
-        LogStream& operator<<(T&& value) {
-            if (!moved_) {
-                stream_ << std::forward<T>(value);
-            }
-            return *this;
-        }
-
-        LogStream& operator<<(std::ostream& (*manip)(std::ostream&)) {
-            if (!moved_) {
-                stream_ << manip;
-            }
-            return *this;
-        }
-
-    private:
-        plog::Severity severity_;
-        std::source_location location_;
-        std::ostringstream stream_;
-        bool moved_ = false;
-    };
-
     export class Logger {
     public:
         static void InitConsole(LogSeverity maxSeverity = LogSeverity::Info) {
@@ -123,68 +77,6 @@ namespace OpenKaiser {
 
             plog::init(static_cast<plog::Severity>(maxSeverity), &fileAppender)
                 .addAppender(&consoleAppender);
-        }
-
-        template<typename... Args>
-        static void Verbose(Args&&... args) {
-            LogMessage(plog::verbose, std::forward<Args>(args)...);
-        }
-
-        template<typename... Args>
-        static void Debug(Args&&... args) {
-            LogMessage(plog::debug, std::forward<Args>(args)...);
-        }
-
-        template<typename... Args>
-        static void Info(Args&&... args) {
-            LogMessage(plog::info, std::forward<Args>(args)...);
-        }
-
-        template<typename... Args>
-        static void Warning(Args&&... args) {
-            LogMessage(plog::warning, std::forward<Args>(args)...);
-        }
-
-        template<typename... Args>
-        static void Error(Args&&... args) {
-            LogMessage(plog::error, std::forward<Args>(args)...);
-        }
-
-        template<typename... Args>
-        static void Fatal(Args&&... args) {
-            LogMessage(plog::fatal, std::forward<Args>(args)...);
-        }
-
-        static LogStream Verbose(std::source_location location = std::source_location::current()) { 
-            return LogStream(plog::verbose, location); 
-        }
-
-        static LogStream Debug(std::source_location location = std::source_location::current()) { 
-            return LogStream(plog::debug, location); 
-        }
-
-        static LogStream Info(std::source_location location = std::source_location::current()) { 
-            return LogStream(plog::info, location); 
-        }
-
-        static LogStream Warning(std::source_location location = std::source_location::current()) { 
-            return LogStream(plog::warning, location); 
-        }
-
-        static LogStream Error(std::source_location location = std::source_location::current()) { 
-            return LogStream(plog::error, location); 
-        }
-
-        static LogStream Fatal(std::source_location location = std::source_location::current()) { 
-            return LogStream(plog::fatal, location); 
-        }
-
-    private:
-        template<typename... Args>
-        static void LogMessage(plog::Severity severity, Args&&... args) {
-            std::ostringstream oss;
-            (oss << ... << std::forward<Args>(args));
-            PLOG(severity) << oss.str();
         }
     };
 }
