@@ -29,6 +29,34 @@ namespace OpenKaiser {
         Connection& operator=(const Connection&) = delete;
     };
 
+    export class ScopedConnections {
+    private:
+        std::vector<Connection> connections_;
+
+    public:
+        ScopedConnections() = default;
+        ~ScopedConnections() = default;
+
+        // Move-only
+        ScopedConnections(ScopedConnections&& other) noexcept = default;
+        ScopedConnections& operator=(ScopedConnections&& other) noexcept = default;
+        ScopedConnections(const ScopedConnections&) = delete;
+        ScopedConnections& operator=(const ScopedConnections&) = delete;
+
+        ScopedConnections& operator+=(Connection&& connection) {
+            connections_.push_back(std::move(connection));
+            return *this;
+        }
+
+        void disconnect_all() {
+            connections_.clear();
+        }
+
+        size_t count() const {
+            return connections_.size();
+        }
+    };
+
     export template<typename... Args>
     class Event {
     private:
