@@ -406,6 +406,11 @@ namespace OpenKaiser {
 		std::string text_;
 		float size_;
 		bool centered_;
+		sdl::TexturePtr texture_;
+
+		void UpdateTexture() {
+			texture_ = resource_manager_->get_text(text_, size_, color_.r, color_.g, color_.b);
+		}
 
 	public:
 		TextElement(const std::string& text, float size, const sdl::Color& color, bool centered = false)
@@ -413,14 +418,13 @@ namespace OpenKaiser {
 		}
 
 		void Draw() override {
-			auto texture = resource_manager_->get_text(text_, size_, color_.r, color_.g, color_.b);
 			if (centered_) {
 				sdl::FPoint middle{ screen_area_.x + screen_area_.w / 2,screen_area_.y + screen_area_.h / 2 };
-				sdl::render_texture_centered(renderer_, texture, middle);
+				sdl::render_texture_centered(renderer_, texture_, middle);
 			}
 			else {
-				sdl::FRect output_area{ screen_area_.x, screen_area_.y, static_cast<float>(texture->w), static_cast<float>(texture->h) };
-				sdl::render_texture(renderer_, texture, output_area);
+				sdl::FRect output_area{ screen_area_.x, screen_area_.y, static_cast<float>(texture_->w), static_cast<float>(texture_->h) };
+				sdl::render_texture(renderer_, texture_, output_area);
 			}
 		}
 
@@ -430,10 +434,12 @@ namespace OpenKaiser {
 
 		sdl::Color& color() {
 			return color_;
+			UpdateTexture();
 		}
 
 		void set_text(const std::string& text) {
 			text_ = text;
+			UpdateTexture();
 		}
 
 		std::string& text() {
@@ -442,6 +448,7 @@ namespace OpenKaiser {
 
 		void set_size(float size) {
 			size_ = size;
+			UpdateTexture();
 		}
 
 		float size() const {
