@@ -20,7 +20,7 @@ namespace OpenKaiser {
 		sdl::Keycode hotkey;
 		std::vector<std::shared_ptr<MenuItem>> childItems;
 		MenuItem* parent;
-		std::function<ResultAction(const std::string)> callback;
+		Event<const std::string&> on_action;
 	};
 
 	export class MenuManager : public HorizontalStack {
@@ -43,7 +43,7 @@ namespace OpenKaiser {
 
 		void HandleButtonClick(UIElement* button) {
 			auto item = get_item_by_name(button->id());
-			item->callback(button->id());
+			item->on_action.emit(button->id());
 		}
 
 		void UpdateButtons() {

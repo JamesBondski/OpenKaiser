@@ -148,6 +148,9 @@ namespace OpenKaiser {
 
 		Connection human_turn_;
 
+		Connection end_turn_handler_;
+		Connection quit_handler_;
+
 	public:
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			GameState::Init(renderer, resources, state, controller);
@@ -178,14 +181,14 @@ namespace OpenKaiser {
 			end_turn->name = "endturn";
 			end_turn->text = "End (T)urn";
 			end_turn->hotkey = sdl::SDLK::T;
-			end_turn->callback = [this](const std::string item_name) { return HandleEndTurn(item_name); };
+			end_turn_handler_ = end_turn->on_action.subscribe(this, &MainState::HandleEndTurn);
 			menu_->add_item(root_item, end_turn);
 
 			std::shared_ptr<MenuItem> quit = std::make_shared<MenuItem>();
 			quit->name = "quit";
 			quit->text = "(Q)uit";
 			quit->hotkey = sdl::SDLK::Q;
-			quit->callback = [this](const std::string item_name) { return HandleQuit(item_name); };
+			quit_handler_ = quit->on_action.subscribe(this, &MainState::HandleQuit);
 			menu_->add_item(root_item, quit);
 
 			human_turn_ = this->controller_->on_start_human_turn().subscribe(this, &MainState::HandleStartHumanTurn);
@@ -197,14 +200,12 @@ namespace OpenKaiser {
 			
 		}
 
-		ResultAction HandleQuit(const std::string item_name) {
+		void HandleQuit(const std::string& item_name) {
 			set_next_state("quit");
-			return ResultAction::None;
 		}
 
-		ResultAction HandleEndTurn(const std::string item_name) {
+		void HandleEndTurn(const std::string& item_name) {
 			controller_->EndTurn();
-			return ResultAction::None;
 		}
 	};
 }
