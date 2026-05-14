@@ -108,7 +108,7 @@ namespace OpenKaiser {
 				return text_it->second;
 			}
 			else {
-				PLOG_DEBUG << "Rendering text '" << text << "' (size " << size << "), RGB(" << color.r << "," << color.g << "," << color.b << ")";
+				PLOG_DEBUG << "Rendering text '" << text << "' (size " << size << "), RGB(" << static_cast<int>(color.r) << "," << static_cast<int>(color.g) << "," << static_cast<int>(color.b) << ")";
 				sdl::TexturePtr rendered = sdl::ttf_render_text(renderer_, font_it->second, text, color);
 				auto [it, inserted] = texts_.insert(std::pair<TextConfig, sdl::TexturePtr>(config, rendered));
 				return it->second;
