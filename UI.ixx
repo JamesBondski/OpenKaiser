@@ -190,7 +190,6 @@ namespace OpenKaiser {
 		sdl::FPoint mid_point_;
 
 		void UpdateTexture() {
-			PLOG_INFO << "Updating texture...";
 			if (text_.empty()) {
 				text_texture_.reset();
 			}
@@ -413,6 +412,7 @@ namespace OpenKaiser {
 		sdl::TexturePtr texture_;
 
 		void UpdateTexture() {
+			texture_.reset();
 			texture_ = resource_manager_->get_text(text_, size_, color_.r, color_.g, color_.b);
 		}
 
@@ -468,18 +468,22 @@ namespace OpenKaiser {
 		}
 
 		void UpdateLayout() override {
-			auto texture = resource_manager_->get_text(text_, size_, color_.r, color_.g, color_.b);
+			if (!texture_) {
+				return;
+			}
+
 			if (layout_.width_mode == LayoutMode::Auto) {
-				layout_.width = texture->w;
+				layout_.width = texture_->w;
 			}
 
 			if (layout_.height_mode == LayoutMode::Auto) {
-				layout_.height = texture->h;
+				layout_.height = texture_->h;
 			}
 		}
 	};
 
-	export class DynamicTextElement : public TextElement {
+	export class DynamicTextElement : public TextElement { //+		[ptr]	0x0000022e9ee80ad0 {format=SDL_PIXELFORMAT_ARGB8888 (372645892) w=70 h=20 ...}	SDL_Texture *
+
 	private:
 		std::function<std::string()> text_getter_;
 	public:
@@ -489,7 +493,10 @@ namespace OpenKaiser {
 		}
 
 		void Draw() override {
-			set_text(text_getter_());
+			std::string new_text = text_getter_();
+			if (new_text != text()) {
+				set_text(new_text);
+			}
 			TextElement::Draw();
 		}
 	};

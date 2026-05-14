@@ -57,6 +57,7 @@ namespace OpenKaiser {
 			}
 
 			State()->Update(diff);
+			resource_manager_->Update(diff);
 
 			std::string next_state = State()->next_state();
 			if (next_state == "quit") {

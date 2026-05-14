@@ -54,6 +54,32 @@ namespace OpenKaiser {
 			renderer_ = renderer;
 		}
 
+		void Update(float time_passed) {
+			std::vector<std::string> remove;
+			for (auto& texture : textures_) {
+				if (texture.second.use_count() == 1) {
+					remove.push_back(texture.first);
+				}
+			}
+
+			for (auto name : remove) {
+				PLOG_DEBUG << "Removing texture " << name;
+				textures_.erase(name);
+			}
+
+			std::vector<TextConfig> remove_text;
+			for (auto& text : texts_) {
+				if (text.second.use_count() == 1) {
+					remove_text.push_back(text.first);
+				}
+			}
+
+			for (auto text_info : remove_text) {
+				PLOG_DEBUG << "Removing text " << text_info.text << " (size " << text_info.size << ").";
+				texts_.erase(text_info);
+			}
+		}
+
 		sdl::TexturePtr& get_image(const std::string& path) {
 			auto texture = textures_.find(path);
 			if (texture != textures_.end()) {

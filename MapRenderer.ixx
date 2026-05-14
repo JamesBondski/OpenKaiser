@@ -24,8 +24,12 @@ namespace OpenKaiser {
 		std::unordered_map<TileType, sdl::TexturePtr> tile_textures_;
 		std::unordered_map<BuildingType, sdl::TexturePtr> building_textures_;
 		std::unordered_map<TileType, sdl::Color> tile_colors_;
+		std::vector<sdl::TexturePtr> country_names_;
+		sdl::TexturePtr current_country_name_;
 
 		Event<Area&> on_scroll_;
+
+		ScopedConnections handlers_;
 
 		float tile_size_ = 64;
 		float border_size_ = 3;
@@ -133,6 +137,10 @@ namespace OpenKaiser {
 			on_scroll_.emit(visible_area);
 		}
 
+		void OnHumanTurn(std::uint16_t next_player) {
+			current_country_name_ = resource_manager_->get_text(state_->countries()[next_player].name, 14, { 255, 0, 0, 255 });
+		}
+
 	public:
 		void set_tile_size(float tile_size) {
 			tile_size_ = tile_size;
@@ -196,6 +204,13 @@ namespace OpenKaiser {
 			AddBuildingTexture(BuildingType::Field, "data/graphics/tiles/field.png");
 			AddBuildingTexture(BuildingType::Pasture, "data/graphics/tiles/pasture.png");
 			AddBuildingTexture(BuildingType::Palace, "data/graphics/tiles/palace.png");
+
+			for (auto country : state_->countries()) {
+				country_names_.push_back(resource_manager_->get_text(country.name, 14, 255, 255, 255));
+			}
+			current_country_name_ = resource_manager_->get_text(state_->countries()[state_->current_country_id()].name, 14, {255, 0, 0, 255});
+
+			handlers_ += controller_->on_start_human_turn().subscribe(this, &MapRenderer::OnHumanTurn);
 		}
 
 		void Draw() override {
@@ -235,12 +250,10 @@ namespace OpenKaiser {
 						screen_area_.y + (country.capital.y - first_tile.y) * tile_size_ + tile_size_ / 2
 					};
 
-					sdl::TexturePtr texture;
-					if (country.id != state_->current_country_id()) {
-						texture = resource_manager_->get_text(country.name, 14, 255, 255, 255);
-					}
-					else {
-						texture = resource_manager_->get_text(country.name, 14, 255, 0, 0);
+					sdl::TexturePtr texture = country_names_[country.id];
+					// Display current country name in red
+					if (country.id == state_->current_country_id()) {
+						texture = current_country_name_;
 					}
 					sdl::render_texture_centered(renderer_, texture, target_position);
 				}
