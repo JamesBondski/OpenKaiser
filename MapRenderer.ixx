@@ -137,8 +137,17 @@ namespace OpenKaiser {
 			on_scroll_.emit(visible_area);
 		}
 
-		void OnHumanTurn(std::uint16_t next_player) {
-			current_country_name_ = resource_manager_->get_text(state_->countries()[next_player].name, 14, { 255, 0, 0, 255 });
+		void GenerateCountryNameTextures(std::uint16_t current_country) {
+			// Repopulate country name textures
+			country_names_.clear();
+			for (auto country : state_->countries()) {
+				if (country.id == current_country) {
+					country_names_.push_back(resource_manager_->get_text(state_->countries()[current_country].name, 14, { 255, 0, 0, 255 }));
+				}
+				else {
+					country_names_.push_back(resource_manager_->get_text(country.name, 14, 255, 255, 255));
+				}
+			}
 		}
 
 	public:
@@ -205,12 +214,9 @@ namespace OpenKaiser {
 			AddBuildingTexture(BuildingType::Pasture, "data/graphics/tiles/pasture.png");
 			AddBuildingTexture(BuildingType::Palace, "data/graphics/tiles/palace.png");
 
-			for (auto country : state_->countries()) {
-				country_names_.push_back(resource_manager_->get_text(country.name, 14, 255, 255, 255));
-			}
-			current_country_name_ = resource_manager_->get_text(state_->countries()[state_->current_country_id()].name, 14, {255, 0, 0, 255});
+			GenerateCountryNameTextures(state_->current_country_id());
 
-			handlers_ += controller_->on_start_human_turn().subscribe(this, &MapRenderer::OnHumanTurn);
+			handlers_ += controller_->on_start_human_turn().subscribe(this, &MapRenderer::GenerateCountryNameTextures);
 		}
 
 		void Draw() override {
@@ -251,10 +257,6 @@ namespace OpenKaiser {
 					};
 
 					sdl::TexturePtr texture = country_names_[country.id];
-					// Display current country name in red
-					if (country.id == state_->current_country_id()) {
-						texture = current_country_name_;
-					}
 					sdl::render_texture_centered(renderer_, texture, target_position);
 				}
 			}
