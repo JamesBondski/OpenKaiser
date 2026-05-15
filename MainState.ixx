@@ -150,7 +150,7 @@ namespace OpenKaiser {
 
 			side_bar_ = std::make_shared<Padded<SideBar>>();
 			AddChild(side_bar_);
-			side_bar_->set_pad_amount(kMenuHeight);
+			side_bar_->set_pad_amount(kSideBarPadding);
 			side_bar_->set_layout({ kSideBarWidth, LayoutMode::Fixed, 0, LayoutMode::Fill });
 
 			map_renderer_ = std::make_shared<MapRenderer>();
