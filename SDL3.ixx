@@ -58,6 +58,8 @@ export namespace sdl {
     }
 
     export namespace SDLK {
+        export constexpr Uint32 B = 0x00000062u;
+        export constexpr Uint32 F = 0x00000066u;
         export constexpr Uint32 Q = 0x00000071u;
         export constexpr Uint32 T = 0x00000074u;
     }

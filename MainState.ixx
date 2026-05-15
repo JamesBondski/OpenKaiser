@@ -124,7 +124,7 @@ namespace OpenKaiser {
 		}
 
 		void set_screen_area(sdl::FRect& screen_area) override {
-			if (mini_map_->screen_area().h != screen_area.w) {
+			if (mini_map_ && mini_map_->screen_area().h != screen_area.w) {
 				sdl::FRect new_height = mini_map_->screen_area();
 				new_height.h = screen_area.w;
 				mini_map_->set_screen_area(new_height);
@@ -174,6 +174,19 @@ namespace OpenKaiser {
 			menu_->set_layout({0, LayoutMode::Fill, kMenuHeight, LayoutMode::Fixed });
 
 			auto root_item = menu_->get_root_item();
+
+			std::shared_ptr<MenuItem> build_menu = std::make_shared<MenuItem>();
+			build_menu->text = "(B)uild";
+			build_menu->name = "build";
+			build_menu->hotkey = sdl::SDLK::B;
+			menu_->add_item(root_item, build_menu);
+
+			std::shared_ptr<MenuItem> build_field = std::make_shared<MenuItem>();
+			build_field->name = "buildfield";
+			build_field->text = "(F)ield";
+			build_field->hotkey = sdl::SDLK::F;
+			menu_->add_item(build_menu, build_field);
+
 			std::shared_ptr<MenuItem> end_turn = std::make_shared<MenuItem>();
 			end_turn->name = "endturn";
 			end_turn->text = "End (T)urn";

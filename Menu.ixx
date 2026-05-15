@@ -27,6 +27,7 @@ namespace OpenKaiser {
 	private:
 		std::shared_ptr<MenuItem> root_item_;
 		std::shared_ptr<MenuItem> current_item_;
+		std::shared_ptr<MenuItem> next_item_;
 
 		float padding_ = 15;
 		float item_width_ = 0;
@@ -42,8 +43,31 @@ namespace OpenKaiser {
 		std::vector<Connection> button_connections_;
 
 		void HandleButtonClick(UIElement* button) {
+			if (button->id() == "back") {
+				next_item_ = get_item_by_name(current_item_->parent->name);
+				return;
+			}
+
 			auto item = get_item_by_name(button->id());
-			item->on_action.emit(button->id());
+			// Check if it is an action item
+			if (item->childItems.size() == 0) {
+				item->on_action.emit(button->id());
+			}
+			else {
+				next_item_ = item;
+			}
+		}
+
+		std::shared_ptr<Button> CreateButton(const std::string& name, const std::string& text, sdl::Keycode hotkey) {
+			std::shared_ptr<Button> button = std::make_shared<Button>();
+			button->set_text(text);
+			button->set_id(name);
+			button->set_background_color(button_color_);
+			button->set_text_color(text_color_);
+			button->set_hotkey(hotkey);
+			button_connections_.push_back(button->on_action().subscribe(this, &MenuManager::HandleButtonClick));
+			button->set_layout({ 0, LayoutMode::Fill, 0, LayoutMode::Fill });
+			return button;
 		}
 
 		void UpdateButtons() {
@@ -55,14 +79,7 @@ namespace OpenKaiser {
 			int column_ = 0;
 			int count = 0;
 			for (auto item : current_item_->childItems) {
-				std::shared_ptr<Button> button = std::make_shared<Button>();
-				button->set_text(item->text);
-				button->set_id(item->name);
-				button->set_background_color(button_color_);
-				button->set_text_color(text_color_);
-				button->set_hotkey(item->hotkey);
-				button_connections_.push_back(button->on_action().subscribe(this, &MenuManager::HandleButtonClick));
-				button->set_layout({ 0, LayoutMode::Fill, 0, LayoutMode::Fill });
+				std::shared_ptr<Button> button = CreateButton(item->name, item->text, item->hotkey);
 				columns_[column_]->AddChild(button);
 				count++;
 				if (count == num_rows_) {
@@ -70,10 +87,17 @@ namespace OpenKaiser {
 					count = 0;
 				}
 			}
+
+			// If it's not the root item, add a back button
+			if (current_item_->parent != nullptr) {
+				std::shared_ptr back_button = CreateButton("back", "(B)ack", sdl::SDLK::B);
+				columns_[column_]->AddChild(back_button);
+			}
 		}
 	public:
 		MenuManager() {
 			root_item_ = std::make_shared<MenuItem>();
+			root_item_->name = "root";
 			current_item_ = root_item_;
 		}
 
@@ -104,6 +128,14 @@ namespace OpenKaiser {
 			parent->childItems.push_back(child);
 			child->parent = parent.get();
 			UpdateButtons();
+		}
+
+		void Update(float passedTime) override {
+			if (next_item_) {
+				current_item_ = next_item_;
+				UpdateButtons();
+				next_item_.reset();
+			}
 		}
 
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {

@@ -170,6 +170,10 @@ namespace OpenKaiser {
 			element->Init(renderer_, resource_manager_, state_, controller_);
 			element->set_parent(this);
 			children_.push_back(element);
+
+			// Update children positions
+			sdl::FRect own_pos = screen_area_;
+			set_screen_area(own_pos);
 		}
 
 		void RemoveChildren() {
