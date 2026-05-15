@@ -163,33 +163,12 @@ namespace OpenKaiser {
 			left_stack_->AddChild(menu_);
 			menu_->set_layout({0, LayoutMode::Fill, kMenuHeight, LayoutMode::Fixed });
 
-			auto root_item = menu_->get_root_item();
-
-			std::shared_ptr<MenuItem> build_menu = std::make_shared<MenuItem>();
-			build_menu->text = "(B)uild";
-			build_menu->name = "build";
-			build_menu->hotkey = sdl::SDLK::B;
-			menu_->add_item(root_item, build_menu);
-
-			std::shared_ptr<MenuItem> build_field = std::make_shared<MenuItem>();
-			build_field->name = "buildfield";
-			build_field->text = "(F)ield";
-			build_field->hotkey = sdl::SDLK::F;
-			menu_->add_item(build_menu, build_field);
-
-			std::shared_ptr<MenuItem> end_turn = std::make_shared<MenuItem>();
-			end_turn->name = "endturn";
-			end_turn->text = "End (T)urn";
-			end_turn->hotkey = sdl::SDLK::T;
-			handlers_ += end_turn->on_action.subscribe(this, &MainState::HandleEndTurn);
-			menu_->add_item(root_item, end_turn);
-
-			std::shared_ptr<MenuItem> quit = std::make_shared<MenuItem>();
-			quit->name = "quit";
-			quit->text = "(Q)uit";
-			quit->hotkey = sdl::SDLK::Q;
-			handlers_ += quit->on_action.subscribe(this, &MainState::HandleQuit);
-			menu_->add_item(root_item, quit);
+			menu_->AddItem("root", "build", "(B)uild", sdl::SDLK::B);
+			menu_->AddItem("build", "buildfield", "(F)ield", sdl::SDLK::F);
+			handlers_ += menu_->AddItem("root", "endturn", "End (T)urn", sdl::SDLK::T)
+				.subscribe(this, &MainState::HandleEndTurn);
+			handlers_ += menu_->AddItem("root", "quit", "(Q)uit", sdl::SDLK::Q)
+				.subscribe(this, &MainState::HandleQuit);
 
 			handlers_ += this->controller_->on_start_human_turn().subscribe(this, &MainState::HandleStartHumanTurn);
 

@@ -9,12 +9,7 @@ import WorldState;
 import Events;
 
 namespace OpenKaiser {
-	export enum class ResultAction {
-		None,
-		Back
-	};
-
-	export struct MenuItem {
+	struct MenuItem {
 		std::string name;
 		std::string text;
 		sdl::Keycode hotkey;
@@ -95,14 +90,8 @@ namespace OpenKaiser {
 				columns_[column_]->AddChild(back_button);
 			}
 		}
-	public:
-		MenuManager() {
-			root_item_ = std::make_shared<MenuItem>();
-			root_item_->name = "root";
-			current_item_ = root_item_;
-		}
 
-		std::shared_ptr<MenuItem> get_item_by_name(const std::string& name) {
+		std::shared_ptr<MenuItem>& get_item_by_name(const std::string& name) {
 			std::stack<std::shared_ptr<MenuItem>> search_list;
 			search_list.push(root_item_);
 
@@ -118,17 +107,33 @@ namespace OpenKaiser {
 					search_list.push(child_item);
 				}
 			}
-			return nullptr;
+			throw OpenKaiserError("Menu item " + name + " not found");
 		}
 
 		const std::shared_ptr<MenuItem>& get_root_item() const {
 			return root_item_;
 		}
 
-		void add_item(std::shared_ptr<MenuItem>& parent, std::shared_ptr<MenuItem>& child) {
-			parent->childItems.push_back(child);
-			child->parent = parent.get();
+	public:
+		MenuManager() {
+			root_item_ = std::make_shared<MenuItem>();
+			root_item_->name = "root";
+			current_item_ = root_item_;
+		}
+
+		Event<const std::string&>& AddItem(const std::string& parent, const std::string& name, const std::string& text, sdl::Keycode hotkey) {
+			auto parent_item = get_item_by_name(parent);
+
+			std::shared_ptr<MenuItem> item = std::make_shared<MenuItem>();
+			item->text = "(B)uild";
+			item->name = "build";
+			item->hotkey = sdl::SDLK::B;
+			item->parent = parent_item.get();
+			
+			parent_item->childItems.push_back(item);
+			
 			UpdateButtons();
+			return item->on_action;
 		}
 
 		void Update(float passedTime) override {
