@@ -18,13 +18,12 @@ namespace OpenKaiser {
 		Event<const std::string&> on_action;
 	};
 
-	export class MenuManager : public HorizontalStack {
+	export class MenuManager : public Padded<HorizontalStack> {
 	private:
 		std::shared_ptr<MenuItem> root_item_;
 		std::shared_ptr<MenuItem> current_item_;
 		std::shared_ptr<MenuItem> next_item_;
 
-		float padding_ = 15;
 		float item_width_ = 0;
 		float item_height_ = 0;
 
@@ -125,9 +124,9 @@ namespace OpenKaiser {
 			auto parent_item = get_item_by_name(parent);
 
 			std::shared_ptr<MenuItem> item = std::make_shared<MenuItem>();
-			item->text = "(B)uild";
-			item->name = "build";
-			item->hotkey = sdl::SDLK::B;
+			item->text = text;
+			item->name = name;
+			item->hotkey = hotkey;
 			item->parent = parent_item.get();
 			
 			parent_item->childItems.push_back(item);
@@ -146,6 +145,7 @@ namespace OpenKaiser {
 
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			UIElement::Init(renderer, resources, state, controller);
+			set_pad_amount(5);
 
 			for (int i = 0; i < num_columns_; i++) {
 				std::shared_ptr<VerticalStack> stack = std::make_shared<VerticalStack>();
