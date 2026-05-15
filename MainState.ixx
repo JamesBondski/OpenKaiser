@@ -85,40 +85,33 @@ namespace OpenKaiser {
 		}
 	};
 
-	export class SideBar : public Padding {
+	export class SideBar : public VerticalStack {
 	private:
 		std::shared_ptr<MiniMap> mini_map_;
-		std::shared_ptr<VerticalStack> stack_;
-		std::shared_ptr<Padding> padding_;
 
 	public:
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			UIElement::Init(renderer, resources, state, controller);
 
-			set_pad_amount(kSideBarPadding);
-
-			stack_ = std::make_shared<VerticalStack>();
-			AddChild(stack_);
-
 			mini_map_ = std::make_shared<MiniMap>();
 			mini_map_->set_layout({kSideBarWidth - 2 * kSideBarPadding, LayoutMode::Fixed, 1, LayoutMode::Ratio });
-			stack_->AddChild(mini_map_);
+			AddChild(mini_map_);
 
 			sdl::Color text_color{ 255, 255, 255, 255 };
 			std::function<std::string()> text_getter = [this]() { return "Country: " + state_->current_country().name; };
 			std::shared_ptr<DynamicTextElement> current_player_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
 			current_player_text->set_layout({0, LayoutMode::Fill, 25, LayoutMode::Fixed});
-			stack_->AddChild(current_player_text);
+			AddChild(current_player_text);
 
 			text_getter = [this]() { return "Year: " + std::to_string(state_->year()); };
 			std::shared_ptr<DynamicTextElement> current_year_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
 			current_year_text->set_layout({ 0, LayoutMode::Fill, 25, LayoutMode::Fixed });
-			stack_->AddChild(current_year_text);
+			AddChild(current_year_text);
 
 			text_getter = [this]() { return "Gold: " + std::to_string(state_->current_country().resources[ResourceType::Gold]); };
 			std::shared_ptr<DynamicTextElement> gold_text = std::make_shared<DynamicTextElement>(text_getter, (float)14, text_color, false);
 			gold_text->set_layout({ 0, LayoutMode::Fill, 25, LayoutMode::Fixed });
-			stack_->AddChild(gold_text);
+			AddChild(gold_text);
 
 			set_screen_area(screen_area_);
 		}
@@ -130,7 +123,7 @@ namespace OpenKaiser {
 				mini_map_->set_screen_area(new_height);
 			}
 
-			Padding::set_screen_area(screen_area);
+			VerticalStack::set_screen_area(screen_area);
 		}
 
 		void AttachToMapRenderer(std::shared_ptr<MapRenderer>& map_renderer) {
@@ -142,8 +135,7 @@ namespace OpenKaiser {
 	private:
 		std::shared_ptr<MapRenderer> map_renderer_;
 		std::shared_ptr<MenuManager> menu_;
-		std::shared_ptr<SideBar> side_bar_;
-		std::shared_ptr<HorizontalStack> main_stack_;
+		std::shared_ptr<Padded<SideBar>> side_bar_;
 		std::shared_ptr<VerticalStack> left_stack_;
 
 		ScopedConnections handlers_;
@@ -152,15 +144,13 @@ namespace OpenKaiser {
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
 			GameState::Init(renderer, resources, state, controller);
 
-			main_stack_ = std::make_shared<HorizontalStack>();
-			AddChild(main_stack_);
-
 			left_stack_ = std::make_shared<VerticalStack>();
-			main_stack_->AddChild(left_stack_);
+			AddChild(left_stack_);
 			left_stack_->set_layout({ 0, LayoutMode::Fill, 0, LayoutMode::Fill });
 
-			side_bar_ = std::make_shared<SideBar>();
-			main_stack_->AddChild(side_bar_);
+			side_bar_ = std::make_shared<Padded<SideBar>>();
+			AddChild(side_bar_);
+			side_bar_->set_pad_amount(kMenuHeight);
 			side_bar_->set_layout({ kSideBarWidth, LayoutMode::Fixed, 0, LayoutMode::Fill });
 
 			map_renderer_ = std::make_shared<MapRenderer>();

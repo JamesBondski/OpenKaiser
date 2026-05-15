@@ -58,8 +58,9 @@ namespace OpenKaiser {
 			}
 		}
 
-		std::shared_ptr<Button> CreateButton(const std::string& name, const std::string& text, sdl::Keycode hotkey) {
-			std::shared_ptr<Button> button = std::make_shared<Button>();
+		std::shared_ptr<Padded<Button>> CreateButton(const std::string& name, const std::string& text, sdl::Keycode hotkey) {
+			std::shared_ptr<Padded<Button>> button = std::make_shared<Padded<Button>>();
+			button->set_pad_amount(5);
 			button->set_text(text);
 			button->set_id(name);
 			button->set_background_color(button_color_);
@@ -79,7 +80,7 @@ namespace OpenKaiser {
 			int column_ = 0;
 			int count = 0;
 			for (auto item : current_item_->childItems) {
-				std::shared_ptr<Button> button = CreateButton(item->name, item->text, item->hotkey);
+				auto button = CreateButton(item->name, item->text, item->hotkey);
 				columns_[column_]->AddChild(button);
 				count++;
 				if (count == num_rows_) {
@@ -90,7 +91,7 @@ namespace OpenKaiser {
 
 			// If it's not the root item, add a back button
 			if (current_item_->parent != nullptr) {
-				std::shared_ptr back_button = CreateButton("back", "(B)ack", sdl::SDLK::B);
+				auto back_button = CreateButton("back", "(B)ack", sdl::SDLK::B);
 				columns_[column_]->AddChild(back_button);
 			}
 		}

@@ -305,34 +305,22 @@ namespace OpenKaiser {
 		}
 	};
 
-	export class Padding : public Container {
+	export template <class T> requires std::derived_from<T, UIElement>
+	class Padded : public T {
 	private:
 		float pad_amount_ = 0;
-
 	public:
-		void set_screen_area(sdl::FRect& screen_area) override {
-			UIElement::set_screen_area(screen_area);
-
-			if (children_.size() > 1) {
-				throw OpenKaiserError("Padding can only hold 1 element.");
-			}
-
-			if (children_.size() == 0) {
-				return;
-			}
-
-			std::shared_ptr<UIElement>& child = children_[0];
-
-			sdl::FRect child_area{ screen_area_.x + pad_amount_, screen_area_.y + pad_amount_, screen_area_.w - 2 * pad_amount_, screen_area_.h - 2 * pad_amount_ };
-			child->set_screen_area(child_area);
-		}
-
 		float pad_amount() const {
 			return pad_amount_;
 		}
 
 		void set_pad_amount(float new_amount) {
 			pad_amount_ = new_amount;
+		}
+
+		void set_screen_area(sdl::FRect& screen_area) override {
+			sdl::FRect padded_area{screen_area.x + pad_amount_, screen_area.y + pad_amount_, screen_area.w - 2 * pad_amount_, screen_area.h - 2 * pad_amount_};
+			T::set_screen_area(padded_area);
 		}
 	};
 
@@ -505,7 +493,15 @@ namespace OpenKaiser {
 		}
 	};
 
-	export class GameState : public Padding {
+	export class GameState : public HorizontalStack {
+	private:
+		void UpdateScreenArea() {
+			int width, height;
+			sdl::get_current_render_output_size(this->renderer_, &width, &height);
+
+			sdl::FRect own_area{ 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height) };
+			HorizontalStack::set_screen_area(own_area);
+		}
 	protected:
 		std::string next_state_;
 
@@ -520,20 +516,15 @@ namespace OpenKaiser {
 		}
 
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resources, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller)  override {
-			Padding::Init(renderer, resources, state, controller);
-
-			int width, height;
-			sdl::get_current_render_output_size(renderer, &width, &height);
-			sdl::FRect own_area{ 0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height) };
-			set_screen_area(own_area);
+			HorizontalStack::Init(renderer, resources, state, controller);
+			UpdateScreenArea();
 		}
 
 		void HandleEvent(sdl::Event& event) override {
 			if (event.type == sdl::EventType::WindowResized) {
-				sdl::FRect own_area{ 0.0f, 0.0f, static_cast<float>(event.window.data1), static_cast<float>(event.window.data2) };
-				set_screen_area(own_area);
+				UpdateScreenArea();
 			}
-			Padding::HandleEvent(event);
+			HorizontalStack::HandleEvent(event);
 		}
 	};
 }
