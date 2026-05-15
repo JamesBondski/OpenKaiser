@@ -12,7 +12,6 @@
     <ClCompile Include="General.ixx" />
     <ClCompile Include="ResourceManager.ixx" />
     <ClCompile Include="MapRenderer.ixx" />
-    <ClCompile Include="UI.ixx" />
     <ClCompile Include="Menu.ixx" />
     <ClCompile Include="GameController.ixx" />
     <ClCompile Include="MainState.ixx" />
@@ -20,5 +19,28 @@
     <ClCompile Include="Events.ixx" />
     <ClCompile Include="Command.ixx" />
     <ClCompile Include="Logging.ixx" />
+    <ClCompile Include="UI\Controls.ixx">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Core.ixx">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\GameState.ixx">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Layout.ixx">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\UI.ixx">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UI\Stacks.ixx">
+      <Filter>UI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="UI">
+      <UniqueIdentifier>{3e9701ea-a490-437e-836d-aaa1ef50e61d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
