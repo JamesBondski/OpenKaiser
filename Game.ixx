@@ -8,7 +8,7 @@ import SDL3;
 import WorldState;
 import WorldGenerator;
 import General;
-import MapRenderer;
+import MapElement;
 import ResourceManager;
 import MainState;
 import GameController;
@@ -24,7 +24,7 @@ namespace OpenKaiser {
 		std::string current_state_;
 		std::unordered_map<std::string, std::unique_ptr<GameState>> states_;
 		std::shared_ptr<ResourceManager> resource_manager_;
-		MapRenderer map_renderer_;
+		MapElement map_renderer_;
 
 		sdl::WindowPtr window_;
 		sdl::RendererPtr renderer_;

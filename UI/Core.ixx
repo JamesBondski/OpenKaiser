@@ -6,6 +6,7 @@ import WorldState;
 import ResourceManager;
 import General;
 import GameController;
+import Events;
 import :Layout;
 
 namespace OpenKaiser {
@@ -19,6 +20,7 @@ namespace OpenKaiser {
 		std::string id_;
 		std::shared_ptr<GameController> controller_;
 		Layout layout_;
+		ScopedConnections handlers_;
 
 	public:
 		Layout& layout() {

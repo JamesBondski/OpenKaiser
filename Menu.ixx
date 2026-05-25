@@ -38,11 +38,11 @@ namespace OpenKaiser {
 
 		void HandleButtonClick(UIElement* button) {
 			if (button->id() == "back") {
-				next_item_ = get_item_by_name(current_item_->parent->name);
+				next_item_ = GetItemByName(current_item_->parent->name);
 				return;
 			}
 
-			auto item = get_item_by_name(button->id());
+			auto item = GetItemByName(button->id());
 			// Check if it is an action item
 			if (item->childItems.size() == 0) {
 				item->on_action.emit(button->id());
@@ -90,7 +90,7 @@ namespace OpenKaiser {
 			}
 		}
 
-		std::shared_ptr<MenuItem>& get_item_by_name(const std::string& name) {
+		std::shared_ptr<MenuItem>& GetItemByName(const std::string& name) {
 			std::stack<std::shared_ptr<MenuItem>> search_list;
 			search_list.push(root_item_);
 
@@ -121,7 +121,7 @@ namespace OpenKaiser {
 		}
 
 		Event<const std::string&>& AddItem(const std::string& parent, const std::string& name, const std::string& text, sdl::Keycode hotkey) {
-			auto parent_item = get_item_by_name(parent);
+			auto parent_item = GetItemByName(parent);
 
 			std::shared_ptr<MenuItem> item = std::make_shared<MenuItem>();
 			item->text = text;

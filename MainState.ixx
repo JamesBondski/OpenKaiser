@@ -3,7 +3,7 @@ export module MainState;
 import std;
 import General;
 import UI;
-import MapRenderer;
+import MapElement;
 import Menu;
 import SDL3;
 import ResourceManager;
@@ -25,7 +25,7 @@ namespace OpenKaiser {
 		std::vector<sdl::Color> country_colors_;
 		int last_redraw_count_ = -1;
 		Area visible_map_area_;
-		std::weak_ptr<MapRenderer> map_renderer_;
+		std::weak_ptr<MapElement> map_renderer_;
 
 		Connection handle_map_scroll;
 
@@ -74,11 +74,11 @@ namespace OpenKaiser {
 			}
 		}
 
-		void UpdateVisibleMapArea(Area& visible_area) {
+		void UpdateVisibleMapArea(Area visible_area) {
 			visible_map_area_ = visible_area;
 		}
 
-		void AttachToMapRenderer(std::shared_ptr<MapRenderer>& map_renderer) {
+		void AttachToMapElement(std::shared_ptr<MapElement>& map_renderer) {
 			map_renderer_ = map_renderer;
 			visible_map_area_ = map_renderer->get_visible_area();
 			handle_map_scroll = map_renderer->on_scroll().subscribe(this, &MiniMap::UpdateVisibleMapArea);
@@ -126,14 +126,14 @@ namespace OpenKaiser {
 			VerticalStack::set_screen_area(screen_area);
 		}
 
-		void AttachToMapRenderer(std::shared_ptr<MapRenderer>& map_renderer) {
-			mini_map_->AttachToMapRenderer(map_renderer);
+		void AttachToMapElement(std::shared_ptr<MapElement>& map_renderer) {
+			mini_map_->AttachToMapElement(map_renderer);
 		}
 	};
 
 	export class MainState : public GameState {
 	private:
-		std::shared_ptr<MapRenderer> map_renderer_;
+		std::shared_ptr<MapElement> map_renderer_;
 		std::shared_ptr<MenuManager> menu_;
 		std::shared_ptr<Padded<SideBar>> side_bar_;
 		std::shared_ptr<VerticalStack> left_stack_;
@@ -153,11 +153,11 @@ namespace OpenKaiser {
 			side_bar_->set_pad_amount(kSideBarPadding);
 			side_bar_->set_layout({ kSideBarWidth, LayoutMode::Fixed, 0, LayoutMode::Fill });
 
-			map_renderer_ = std::make_shared<MapRenderer>();
+			map_renderer_ = std::make_shared<MapElement>();
 			left_stack_->AddChild(map_renderer_);
 			map_renderer_->set_render_mode(RenderMode::Image);
 			map_renderer_->set_layout({ 0, LayoutMode::Fill, 0, LayoutMode::Fill });
-			side_bar_->AttachToMapRenderer(map_renderer_);
+			side_bar_->AttachToMapElement(map_renderer_);
 
 			menu_ = std::make_shared<MenuManager>();
 			left_stack_->AddChild(menu_);

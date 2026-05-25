@@ -1,4 +1,4 @@
-export module MapRenderer;
+export module MapElement;
 
 import SDL3;
 import WorldState;
@@ -27,10 +27,6 @@ namespace OpenKaiser {
 		std::vector<sdl::TexturePtr> country_names_;
 		sdl::TexturePtr current_country_name_;
 
-		Event<Area&> on_scroll_;
-
-		ScopedConnections handlers_;
-
 		float tile_size_ = 64;
 		float border_size_ = 3;
 		RenderMode mode_ = RenderMode::Rect;
@@ -56,7 +52,7 @@ namespace OpenKaiser {
 			sdl::render_fill_rect(renderer_, rect);
 		}
 
-		void DrawTileImage( sdl::TexturePtr& texture, Coordinates coords) {
+		void DrawTileImage(sdl::TexturePtr& texture, Coordinates coords) {
 			sdl::FRect rect = { screen_area_.x + coords.x * tile_size_, screen_area_.y + coords.y * tile_size_, tile_size_, tile_size_ };
 			sdl::render_texture(renderer_, texture, rect);
 		}
@@ -93,7 +89,7 @@ namespace OpenKaiser {
 					tile_rect = { draw_coords.x * tile_size_, draw_coords.y * tile_size_, border_size_, tile_size_ };
 					break;
 				case Adjacency::Top:
-					tile_rect = {  draw_coords.x * tile_size_, draw_coords.y * tile_size_, tile_size_, border_size_ };
+					tile_rect = { draw_coords.x * tile_size_, draw_coords.y * tile_size_, tile_size_, border_size_ };
 					break;
 				case Adjacency::Right:
 					tile_rect = { draw_coords.x * tile_size_ + tile_size_ - border_size_ - 1, draw_coords.y * tile_size_, border_size_, tile_size_ };
@@ -112,29 +108,6 @@ namespace OpenKaiser {
 
 		void AddBuildingTexture(BuildingType type, const std::string& path) {
 			building_textures_.insert(std::pair<BuildingType, sdl::TexturePtr>(type, resource_manager_->get_image(path)));
-		}
-
-		void Scroll(float delta_x, float delta_y) {
-			offset_.x += delta_x;
-			offset_.y += delta_y;
-
-			if (offset_.x < 0) {
-				offset_.x = 0;
-			}
-			if (offset_.y < 0) {
-				offset_.y = 0;
-			}
-
-			Area visible_area = get_visible_area();
-			if (visible_area.x + visible_area.w > state_->tiles().width()) {
-				offset_.x = (state_->tiles().width() - visible_area.w) * tile_size_;
-				visible_area = get_visible_area();
-			}
-			if (visible_area.y + visible_area.h > state_->tiles().height()) {
-				offset_.y = (state_->tiles().height() - visible_area.h) * tile_size_;
-				visible_area = get_visible_area();
-			}
-			on_scroll_.emit(visible_area);
 		}
 
 		void GenerateCountryNameTextures(std::uint16_t current_country) {
@@ -164,15 +137,11 @@ namespace OpenKaiser {
 		}
 
 		Area get_visible_area() {
-			return Area { static_cast<int>(offset_.x / tile_size_), static_cast<int>(offset_.y / tile_size_), static_cast<int>(screen_area_.w / tile_size_) + 1, static_cast<int>(screen_area_.h / tile_size_) + 1 };
+			return Area{ static_cast<int>(offset_.x / tile_size_), static_cast<int>(offset_.y / tile_size_), static_cast<int>(screen_area_.w / tile_size_) + 1, static_cast<int>(screen_area_.h / tile_size_) + 1 };
 		}
 
 		RenderMode& render_mode() {
 			return mode_;
-		}
-
-		Event<Area&>& on_scroll() {
-			return on_scroll_;
 		}
 
 		void ShowNames() {
@@ -183,17 +152,31 @@ namespace OpenKaiser {
 			show_names_ = false;
 		}
 
-		bool scrollable() const {
-			return scrollable_;
+		sdl::FPoint& offset() {
+			return offset_;
 		}
 
-		void set_scrollable(bool scrollable) {
-			scrollable_ = scrollable;
+		void set_offset(const sdl::FPoint& offset) {
+			offset_ = offset;
+
+			if (offset_.x < 0) {
+				offset_.x = 0;
+			}
+			if (offset_.y < 0) {
+				offset_.y = 0;
+			}
+
+			Area visible_area = get_visible_area();
+			if (visible_area.x + visible_area.w > state_->tiles().width()) {
+				offset_.x = (state_->tiles().width() - visible_area.w) * tile_size_;
+			}
+			if (visible_area.y + visible_area.h > state_->tiles().height()) {
+				offset_.y = (state_->tiles().height() - visible_area.h) * tile_size_;
+			}
 		}
 
-		void set_screen_area(sdl::FRect& screen_area) override {
-			UIElement::set_screen_area(screen_area);
-			Scroll(0, 0);
+		void AddToOffset(const sdl::FPoint& add_offset) {
+			set_offset({ offset_.x + add_offset.x, offset_.y + add_offset.y });
 		}
 
 		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resource_manager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
@@ -281,21 +264,103 @@ namespace OpenKaiser {
 			}
 			return target_surface;
 		}
+	};
+
+	export class MapElement : public Container {
+	private:
+		std::shared_ptr<MapRenderer> map_renderer_;
+
+		Event<Area> on_scroll_;
+
+		ScopedConnections handlers_;
+
+		bool scrollable_ = true;
+
+		std::map<Adjacency, Tile> GetTiles(std::array<Coordinates, 4> adjacent_tiles) {
+			std::map<Adjacency, Tile> tiles;
+			int count = 0;
+			for (Coordinates& coords : adjacent_tiles) {
+				if (coords.x > 0 && coords.y > 0 && coords.x < state_->tiles().width() && coords.y < state_->tiles().height()) {
+					tiles.insert(std::pair<Adjacency, Tile>(static_cast<Adjacency>(count++), state_->tile(coords)));
+				}
+			}
+			return tiles;
+		}
+
+		void Scroll(float delta_x, float delta_y) {
+			map_renderer_->AddToOffset({ delta_x, delta_y });
+			on_scroll_.emit(map_renderer_->get_visible_area());
+		}
+
+	public:
+		void set_tile_size(float tile_size) {
+			map_renderer_->set_tile_size(tile_size);
+		}
+
+		float tile_size() const {
+			return map_renderer_->tile_size();
+		}
+
+		void set_render_mode(RenderMode mode) {
+			map_renderer_->set_render_mode(mode);
+		}
+
+		RenderMode& render_mode() {
+			return map_renderer_->render_mode();
+		}
+
+		Event<Area>& on_scroll() {
+			return on_scroll_;
+		}
+
+		void ShowNames() {
+			map_renderer_->ShowNames();
+		}
+
+		void HideNames() {
+			map_renderer_->HideNames();
+		}
+
+		Area get_visible_area() {
+			return map_renderer_->get_visible_area();
+		}
+
+		bool scrollable() const {
+			return scrollable_;
+		}
+
+		void set_scrollable(bool scrollable) {
+			scrollable_ = scrollable;
+		}
+
+		void set_screen_area(sdl::FRect& screen_area) override {
+			map_renderer_->set_screen_area(screen_area);
+			Scroll(0, 0);
+		}
+
+		void Init(sdl::RendererPtr& renderer, std::shared_ptr<ResourceManager>& resource_manager, std::shared_ptr<WorldState>& state, std::shared_ptr<GameController>& controller) override {
+			UIElement::Init(renderer, resource_manager, state, controller);
+
+			map_renderer_ = std::make_shared<MapRenderer>();
+			this->AddChild(map_renderer_);
+
+			set_screen_area(screen_area_);
+		}
 
 		void HandleEvent(sdl::Event& event) override {
 			if (scrollable_ && event.type == sdl::EventType::KeyDown) {
 				switch (event.key.key) {
 				case 0x4000004fu:
-					Scroll(tile_size_, 0);
+					Scroll(map_renderer_->tile_size(), 0);
 					break;
 				case 0x40000050u:
-					Scroll(-tile_size_, 0);
+					Scroll(-map_renderer_->tile_size(), 0);
 					break;
 				case 0x40000051u:
-					Scroll(0, tile_size_);
+					Scroll(0, map_renderer_->tile_size());
 					break;
 				case 0x40000052u:
-					Scroll(0, -tile_size_);
+					Scroll(0, -map_renderer_->tile_size());
 					break;
 				}
 			}
